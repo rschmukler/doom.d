@@ -13,8 +13,10 @@ cp init.example.el init.el  # maybe edit init.el
 make install
 ```
 
-Then add this module as a submodule:
+Then install the module
 
 ```
-git submodule add "https://github.com/rschmukler/doom-emacs-module.git" ./modules/private/$USER
+git clone https://github.com/rschmukler/doom-emacs-module.git
+cd doom-emacs-module
+ln -s $PWD ~/.emacs.d/modules/private/$USER
 ```

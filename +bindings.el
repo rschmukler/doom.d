@@ -97,6 +97,7 @@
      :desc "Load session"             :n "L"   #'+workspace/load-session
      :desc "Next workspace"           :n "]"   #'+workspace/switch-right
      :desc "Previous workspace"       :n "["   #'+workspace/switch-left
+     :desc "Rename workspace"         :n "r"   #'+workspace:rename
      :desc "Switch to 1st workspace"  :n "1"   (λ! (+workspace/switch-to 0))
      :desc "Switch to 2nd workspace"  :n "2"   (λ! (+workspace/switch-to 1))
      :desc "Switch to 3rd workspace"  :n "3"   (λ! (+workspace/switch-to 2))
