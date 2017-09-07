@@ -16,3 +16,5 @@
 
 ;; Turn off line wrapping
 (setq-default truncate-lines 1)
+
+(add-hook 'before-save-hook 'whitespace-cleanup)

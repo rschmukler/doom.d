@@ -3,3 +3,4 @@
 
 (package! flycheck-mix)
 (package! flycheck-credo)
+(package! all-the-icons-ivy)

@@ -17,6 +17,8 @@
  "M-="    #'text-scale-increase
  "M--"    #'text-scale-decrease
 
+ "M-<return>" #'doom/toggle-fullscreen
+
 
  ;; Text Editing
  :nv  "gc"   #'evil-commentary
@@ -61,6 +63,10 @@
    :desc "Eval"                   :n  "e"   #'+eval/buffer
                                   :v  "e"   #'+eval/region
 
+   :desc "Switch to last buffer"  :n  "SPC" #'wc/switch-to-mru-buffer
+
+   :desc "Clear Highlighting"     :n  "h" #'evil-ex-nohighlight
+
    (:desc "git" :prefix "g"
      :desc "Git status"        :n  "s" #'magit-status
      :desc "Git blame"         :n  "b" #'magit-blame
@@ -98,16 +104,15 @@
      :desc "Next workspace"           :n "]"   #'+workspace/switch-right
      :desc "Previous workspace"       :n "["   #'+workspace/switch-left
      :desc "Rename workspace"         :n "r"   #'+workspace:rename
-     :desc "Switch to 1st workspace"  :n "1"   (λ! (+workspace/switch-to 0))
-     :desc "Switch to 2nd workspace"  :n "2"   (λ! (+workspace/switch-to 1))
-     :desc "Switch to 3rd workspace"  :n "3"   (λ! (+workspace/switch-to 2))
-     :desc "Switch to 4th workspace"  :n "4"   (λ! (+workspace/switch-to 3))
-     :desc "Switch to 5th workspace"  :n "5"   (λ! (+workspace/switch-to 4))
-     :desc "Switch to 6th workspace"  :n "6"   (λ! (+workspace/switch-to 5))
-     :desc "Switch to 7th workspace"  :n "7"   (λ! (+workspace/switch-to 6))
-     :desc "Switch to 8th workspace"  :n "8"   (λ! (+workspace/switch-to 7))
-     :desc "Switch to 9th workspace"  :n "9"   (λ! (+workspace/switch-to 8))
-     :desc "Switch to last workspace" :n "0"   #'+workspace/switch-to-last)
+     :desc "Switch to 1st workspace"  :n "0"   (λ! (+workspace/switch-to 0))
+     :desc "Switch to 2nd workspace"  :n "1"   (λ! (+workspace/switch-to 1))
+     :desc "Switch to 3rd workspace"  :n "2"   (λ! (+workspace/switch-to 2))
+     :desc "Switch to 4th workspace"  :n "3"   (λ! (+workspace/switch-to 3))
+     :desc "Switch to 5th workspace"  :n "4"   (λ! (+workspace/switch-to 4))
+     :desc "Switch to 6th workspace"  :n "5"   (λ! (+workspace/switch-to 5))
+     :desc "Switch to 7th workspace"  :n "6"   (λ! (+workspace/switch-to 6))
+     :desc "Switch to 8th workspace"  :n "7"   (λ! (+workspace/switch-to 7))
+     :desc "Switch to 9th workspace"  :n "8"   (λ! (+workspace/switch-to 8)))
 
    )
 
@@ -166,6 +171,11 @@
      [backtab]  #'+ivy/wgrep-occur  ; search/replace on results
      "C-SPC"    #'counsel-git-grep-recenter   ; preview
      "M-RET"    (+ivy-do-action! #'+ivy-git-grep-other-window-action)))
+
+ ;; Elixir Mode
+ (:after elixir-mode
+   (:leader
+     :desc "Toggle between file and tests"   :n "t" (λ! (alchemist-project-toggle-file-and-tests))))
 )
 
 
