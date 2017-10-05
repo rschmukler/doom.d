@@ -41,12 +41,22 @@
   :config
   (add-hook 'flycheck-mode-hook #'flycheck-credo-setup))
 
+(def-package! lux-mode
+  :mode "\\.lux$")
+
+
+(def-package! parinfer
+  :init
+  (progn (setq parinfer-extensions '(defaults pretty-parens evil paredit)))
+  (add-hook 'lux-mode-hook #'parinfer-mode)
+  (add-hook 'clojure-mode-hook #'parinfer-mode)
+  (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
+  (add-hook 'lux-mode-hook #'parinfer-mode))
 
 (def-package! all-the-icons-ivy
   :after ivy
   :config
   (all-the-icons-ivy-setup))
-
 
 (def-package! alchemist
   :after elixir-mode
