@@ -160,7 +160,10 @@
  (:after company
    :map company-active-map
    "C-j"         #'company-select-next
+   "C-n"         #'company-select-next
    "C-k"         #'company-select-previous
+   "C-p"         #'company-select-previous
+   "C-d"         #'company-show-doc-buffer
    )
 
  ;; counsel
@@ -176,6 +179,12 @@
  (:after elixir-mode
    (:leader
      :desc "Toggle between file and tests"   :n "t" (λ! (alchemist-project-toggle-file-and-tests))))
+
+ ;; clojure-mode
+ (:after clojure-mode
+   (:leader
+     :desc "Show documentation"   :n "d" #'cider-doc
+     :desc "Evaluate Function"    :n "e" #'cider-eval-defun-at-point))
 )
 
 
