@@ -20,6 +20,9 @@
   (setq ivy-re-builders-alist
       '((t . ivy--regex-ignore-order))))
 
+(after! projectile
+  (projectile-mode))
+
 (add-hook! elixir-mode
   (flycheck-mode)
   (rainbow-delimiters-mode)
@@ -44,14 +47,29 @@
 (def-package! lux-mode
   :mode "\\.lux$")
 
+(def-package! clojure-mode
+  :mode "\\.cljs?$"
+  :config
+  (company-mode)
+  (flycheck-mode)
+  (rainbow-delimiters-mode)
+  )
 
-(def-package! parinfer
-  :init
-  (progn (setq parinfer-extensions '(defaults pretty-parens evil paredit)))
-  (add-hook 'lux-mode-hook #'parinfer-mode)
-  (add-hook 'clojure-mode-hook #'parinfer-mode)
-  (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
-  (add-hook 'lux-mode-hook #'parinfer-mode))
+(def-package! cider
+  :after clojure-mode)
+
+(def-package! flycheck-clojure
+  :after clojure-mode
+  :config
+  (add-hook 'flycheck-mode-hook #'flycheck-clojure-setup))
+
+;; (def-package! parinfer
+;;   :init
+;;   (progn (setq parinfer-extensions '(defaults pretty-parens evil paredit)))
+;;   (add-hook 'lux-mode-hook #'parinfer-mode)
+;;   (add-hook 'clojure-mode-hook #'parinfer-mode)
+;;   (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
+;;   (add-hook 'lux-mode-hook #'parinfer-mode))
 
 (def-package! all-the-icons-ivy
   :after ivy
