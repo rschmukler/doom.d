@@ -8,6 +8,7 @@
  "C-j"    #'evil-window-down
  "C-k"    #'evil-window-up
  "C-l"    #'evil-window-right
+ "A-q"    #'delete-window
 
 
  :nmvo "C-p"    #'counsel-projectile-find-file
@@ -16,8 +17,10 @@
  "M-+"    (λ! (text-scale-set 0))
  "M-="    #'text-scale-increase
  "M--"    #'text-scale-decrease
+ "M-x"    #'counsel-M-x
 
  "M-<return>" #'doom/toggle-fullscreen
+ "C-`"        #'doom/popup-toggle
 
 
  ;; Text Editing
@@ -65,7 +68,11 @@
 
    :desc "Switch to last buffer"  :n  "SPC" #'wc/switch-to-mru-buffer
 
-   :desc "Clear Highlighting"     :n  "h" #'evil-ex-nohighlight
+   :desc "Clear Highlighting"     :n  "h"   #'evil-ex-nohighlight
+
+   :desc "Delete the window"      :n  "q"   #'delete-window
+   :desc "Get some help"          :n  "h"   #'help
+   :desc "Ivy open buffers"       :n  "b"   #'ivy-switch-buffer
 
    (:desc "git" :prefix "g"
      :desc "Git status"        :n  "s" #'magit-status
@@ -183,6 +190,7 @@
  ;; clojure-mode
  (:after clojure-mode
    (:leader
+     :desc "Open the Cider Repl"  :n "r" #'wpc/find-or-create-clojure-or-clojurescript-repl
      :desc "Show documentation"   :n "d" #'cider-doc
      :desc "Evaluate Function"    :n "e" #'cider-eval-defun-at-point))
 )
