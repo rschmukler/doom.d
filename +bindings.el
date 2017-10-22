@@ -189,10 +189,13 @@
 
  ;; clojure-mode
  (:after clojure-mode
+   :n "=="        #'wpc/reindent-defun-and-align-clojure-map
    (:leader
-     :desc "Open the Cider Repl"  :n "r" #'wpc/find-or-create-clojure-or-clojurescript-repl
-     :desc "Show documentation"   :n "d" #'cider-doc
-     :desc "Evaluate Function"    :n "e" #'cider-eval-defun-at-point))
+     :desc "Open the Cider Repl"  :n "r"  #'wpc/find-or-create-clojure-or-clojurescript-repl
+     :desc "Show documentation"   :n "d"  #'cider-doc
+     :desc "Evaluate Function"    :n "e"  #'cider-eval-defun-at-point
+     :desc "Reindent and Align"   :n "==" #'cider-eval-defun-at-point
+     :desc "Jump to Definition"   :n "l"  #'cider-find-var))
 )
 
 

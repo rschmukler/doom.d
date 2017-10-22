@@ -75,3 +75,8 @@ current buffer directory."
     (cond ((eq mode 'clojurescript-mode) cljs-fn)
           ((eq mode 'clojure-mode) clj-fn)
           ((eq mode 'clojurec-mode) cljs-fn))))
+
+ (defun wpc/reindent-defun-and-align-clojure-map ()
+    (interactive)
+    (call-interactively #'paredit-reindent-defun)
+    (call-interactively #'clojure-align))

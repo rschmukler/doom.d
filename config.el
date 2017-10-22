@@ -21,6 +21,7 @@
       '((t . ivy--regex-ignore-order))))
 
 (after! projectile
+  (setq projectile-enable-caching nil)
   (projectile-mode))
 
 (add-hook! elixir-mode
@@ -53,7 +54,7 @@
   (company-mode)
   (flycheck-mode)
   (rainbow-delimiters-mode)
-  )
+  (setq cider-prompt-for-symbol nil))
 
 (def-package! cider
   :after clojure-mode)
