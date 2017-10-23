@@ -21,8 +21,9 @@
       '((t . ivy--regex-ignore-order))))
 
 (after! projectile
-  (setq projectile-enable-caching nil)
-  (projectile-mode))
+  (setq projectile-switch-project-action #'counsel-projectile-find-file)
+  (projectile-mode)
+  (projectile-load-known-projects))
 
 (add-hook! elixir-mode
   (flycheck-mode)

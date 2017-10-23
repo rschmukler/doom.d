@@ -1,7 +1,6 @@
 ;;; private/rschmukler/+bindings.el -*- lexical-binding: t; -*-
 
 
-
 (map!
  ;; Window Movements
  "C-h"    #'evil-window-left
@@ -61,17 +60,14 @@
    :desc "Previous Error"         :n  "["   #'flycheck-previous-error
 
    :desc "Find file content"      :n  "f"   #'counsel-projectile-ag
-   :desc "Find project"           :n  "p"   #'counsel-projectile-switch-project
+   :desc "Find project"           :n  "p"   #'rs/projectile-switch-project-workspace
 
    :desc "Eval"                   :n  "e"   #'+eval/buffer
                                   :v  "e"   #'+eval/region
 
    :desc "Switch to last buffer"  :n  "SPC" #'wc/switch-to-mru-buffer
 
-   :desc "Clear Highlighting"     :n  "h"   #'evil-ex-nohighlight
-
    :desc "Delete the window"      :n  "q"   #'delete-window
-   :desc "Get some help"          :n  "h"   #'help
    :desc "Ivy open buffers"       :n  "b"   #'ivy-switch-buffer
 
    (:desc "git" :prefix "g"
@@ -189,12 +185,10 @@
 
  ;; clojure-mode
  (:after clojure-mode
-   :n "=="        #'wpc/reindent-defun-and-align-clojure-map
    (:leader
      :desc "Open the Cider Repl"  :n "r"  #'wpc/find-or-create-clojure-or-clojurescript-repl
      :desc "Show documentation"   :n "d"  #'cider-doc
      :desc "Evaluate Function"    :n "e"  #'cider-eval-defun-at-point
-     :desc "Reindent and Align"   :n "==" #'cider-eval-defun-at-point
      :desc "Jump to Definition"   :n "l"  #'cider-find-var))
 )
 
