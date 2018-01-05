@@ -33,8 +33,26 @@
 (add-hook! elm-mode
   (flycheck-mode))
 
-(add-hook! rust-mode
+(def-package! rust-mode
+  :mode "\\.rs$"
+  :config
   (flycheck-mode))
+
+
+(add-hook! flycheck-rust
+  :after rust-mode
+  :config
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+(def-package! racer
+  :after rust-mode
+  :config
+  (setq racer-rust-src-path
+        (concat
+         (replace-regexp-in-string "\n$" "" (shell-command-to-string "rustc --print sysroot"))
+         "/lib/rustlib/src/rust/src"))
+  (company-mode)
+  (eldoc-mode))
 
 (def-package! flycheck-mix
   :after elixir-mode
@@ -44,10 +62,24 @@
 (def-package! flycheck-credo
   :after elixir-mode
   :config
+  (setq flycheck-elixir-credo-strict t)
   (add-hook 'flycheck-mode-hook #'flycheck-credo-setup))
 
 (def-package! lux-mode
   :mode "\\.lux$")
+
+(def-package! erlang
+  :mode "\\.erl$"
+  :config
+  (erlang-mode))
+
+(def-package! racket-mode
+  :mode "\\.rkt$"
+  :config
+  (company-mode)
+  (flycheck-mode)
+  (rainbow-delimiters-mode)
+  )
 
 (def-package! clojure-mode
   :mode "\\.cljs?$"
@@ -64,6 +96,14 @@
   :after clojure-mode
   :config
   (add-hook 'flycheck-mode-hook #'flycheck-clojure-setup))
+
+(def-package! graphql-mode
+  :mode "\\.gql$")
+
+(def-package! intero
+  :after haskell-mode
+  :config
+  (intero-global-mode 1))
 
 ;; (def-package! parinfer
 ;;   :init

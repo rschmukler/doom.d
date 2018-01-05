@@ -70,6 +70,30 @@
    :desc "Delete the window"      :n  "q"   #'delete-window
    :desc "Ivy open buffers"       :n  "b"   #'ivy-switch-buffer
 
+   (:desc "help" :prefix "h"
+     :n "h" help-map
+     :desc "Apropos"               :n "a" #'apropos
+     :desc "Reload theme"          :n "R" #'doom/reload-theme
+     :desc "Find library"          :n "l" #'find-library
+     :desc "Toggle Emacs log"      :n "m" #'doom/popup-toggle-messages
+     :desc "Command log"           :n "L" #'global-command-log-mode
+     :desc "Describe function"     :n "f" #'describe-function
+     :desc "Describe key"          :n "k" #'describe-key
+     :desc "Describe char"         :n "c" #'describe-char
+     :desc "Describe mode"         :n "M" #'describe-mode
+     :desc "Describe variable"     :n "v" #'describe-variable
+     :desc "Describe face"         :n "F" #'describe-face
+     :desc "Describe DOOM setting" :n "s" #'doom/describe-setting
+     :desc "Describe DOOM module"  :n "d" #'doom/describe-module
+     :desc "Find definition"       :n "." #'+jump/definition
+     :desc "Find references"       :n "/" #'+jump/references
+     :desc "Find documentation"    :n "h" #'+jump/documentation
+     :desc "What face"             :n "'" #'doom/what-face
+     :desc "What minor modes"      :n ";" #'doom/what-minor-mode
+     :desc "Info"                  :n "i" #'info
+     :desc "Toggle profiler"       :n "p" #'doom/toggle-profiler)
+
+
    (:desc "git" :prefix "g"
      :desc "Git status"        :n  "s" #'magit-status
      :desc "Git blame"         :n  "b" #'magit-blame
@@ -118,6 +142,10 @@
      :desc "Switch to 9th workspace"  :n "8"   (λ! (+workspace/switch-to 8)))
 
    )
+
+ (:after magit
+   :map magit-blame-mode-map
+   :n "q" #'magit-blame-quit)
 
  ;; ivy
  (:after ivy
@@ -181,7 +209,20 @@
  ;; Elixir Mode
  (:after elixir-mode
    (:leader
-     :desc "Toggle between file and tests"   :n "t" (λ! (alchemist-project-toggle-file-and-tests))))
+     :desc "Toggle between file and tests"   :n "t" (λ! (alchemist-project-toggle-file-and-tests))
+     :desc "Jump to definition at point"     :n "l" #'alchemist-goto-definition-at-point))
+
+ ;; Rust Mode
+ (:after rust-mode
+   (:leader
+     :desc "Lookup documentation at point"   :n "d" #'racer-describe
+     :desc "Jump to definition at point"     :n "l" #'racer-find-definition))
+
+
+ ;; Racket Mode
+ (:after racket-mode
+   (:leader
+     :desc "Describe symbol at point"     :n "d" #'racket-describe))
 
  ;; clojure-mode
  (:after clojure-mode
