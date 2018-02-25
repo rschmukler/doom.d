@@ -32,6 +32,12 @@
 ;; Auto revert-mode. Look ma, no hands...
 (global-auto-revert-mode t)
 
+(setq
+ whitespace-line-column 100
+ whitespace-style
+ '(face trailing lines-tail))
+(global-whitespace-mode)
+
 ;; Turn off line wrapping
 (setq-default truncate-lines 1)
 
