@@ -117,7 +117,9 @@
 (def-package! intero
   :after haskell-mode
   :config
-  (intero-global-mode 1))
+  (intero-global-mode 1)
+  (eldoc-mode)
+  (flycheck-add-next-checker 'intero 'haskell-hlint))
 
 ;; (def-package! parinfer
 ;;   :init

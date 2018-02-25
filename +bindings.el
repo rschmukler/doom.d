@@ -218,6 +218,12 @@
      :desc "Toggle between file and tests"   :n "t" (λ! (alchemist-project-toggle-file-and-tests))
      :desc "Jump to definition at point"     :n "l" #'alchemist-goto-definition-at-point))
 
+ ;; Haskell Mode
+ (:after haskell-mode
+   (:leader
+     :desc "Jump to definition at point"     :n "l" #'intero-goto-definition
+     :desc "Describe symbol at point"        :n "d" #'intero-info))
+
  ;; Rust Mode
  (:after rust-mode
    (:leader
