@@ -1,7 +1,7 @@
 ;;; private/rschmukler/+bindings.el -*- lexical-binding: t; -*-
 
 
-(map!
+ (map!
  ;; Window Movements
  "C-h"    #'evil-window-left
  "C-j"    #'evil-window-down
@@ -110,7 +110,13 @@
                                  :v  "r" #'+eval:repl
      :desc "Neotree"             :n  "n" #'+neotree/toggle
      :desc "Terminal"            :n  "t" #'+term/popup
-     :desc "Terminal in project" :n  "T" #'+term/popup-in-project)
+     :desc "Terminal in project" :n  "T" #'+term/popup-in-project
+     :desc "Org Capture"         :n  "o" #'org-capture)
+
+   (:desc "orgmode" :prefix "O"
+     :desc "Capture item"        :n  "O" #'org-capture
+     :desc "Show all todos"      :n  "t" #'org-todo-list
+     )
 
    (:desc "insert" :prefix "i"
      :desc "From kill-ring" :nv "p" #'counsel-yank-pop

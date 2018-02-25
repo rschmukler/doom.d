@@ -7,6 +7,19 @@
   (load! +bindings)
   (load! +commands))
 
+ (def-package! org
+  :config
+  (setq org-agenda-files (file-expand-wildcards "~/data/org/*.org"))
+  (setq org-directory (expand-file-name "~/data/org"))
+  (defvar +org-dir (expand-file-name "~/data/org"))
+  (setq org-capture-templates
+        '(("c" "Code Task" entry (file+headline "~/data/org/main.org" "Coding Tasks")
+           "* TODO %?\n  Entered on: %U - %a\n")
+          ("t" "Task" entry (file+headline "~/data/org/main.org" "Tasks")
+           "* TODO %?\n  Entered on: %U")
+          ("n" "Note" entry (file+datetree "~/data/org/main.org")
+           "* %?\n\n"))))
+
 (after! neotree
   (setq neo-theme 'icons))
 
@@ -24,6 +37,7 @@
   (setq projectile-switch-project-action #'counsel-projectile-find-file)
   (projectile-mode)
   (projectile-load-known-projects))
+
 
 (add-hook! elixir-mode
   (flycheck-mode)

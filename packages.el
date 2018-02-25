@@ -18,3 +18,4 @@
 (package! racer)
 (package! flycheck-rust)
 (package! intero)
+(package! org)
