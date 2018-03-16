@@ -101,3 +101,24 @@ current buffer directory."
            (progn (+workspace-switch project-name t)
                   (counsel-projectile-switch-project-action project-path)))
          (+tmux/run (concat "tt " project-name)))))))
+
+(defun urbint/format-haskell-source ()
+  (interactive)
+  (let ((output-buffer (generate-new-buffer "brittany-out"))
+        (config-file-path
+         (concat (string-trim
+                  (shell-command-to-string "stack path --project-root"))
+                 "/brittany.yaml")))
+    (when (= 0 (call-process-region
+                (point-min) (point-max)
+                "stack"
+                nil output-buffer nil
+                "exec" "--" "brittany" "--config-file" config-file-path))
+      (let ((pt (point))
+            (wst (window-start))
+            (formatted-source (with-current-buffer output-buffer
+                                (buffer-string))))
+        (erase-buffer)
+        (insert formatted-source)
+        (goto-char pt)
+        (set-window-start nil wst)))))

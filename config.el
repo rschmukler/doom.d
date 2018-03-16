@@ -121,6 +121,13 @@
   (eldoc-mode)
   (flycheck-add-next-checker 'intero 'haskell-hlint))
 
+
+;; (add-hook
+;;  'before-save-hook
+;;  (lambda ()
+;;    (when (eq major-mode 'haskell-mode)
+;;      (urbint/format-haskell-source))))
+
 ;; (def-package! parinfer
 ;;   :init
 ;;   (progn (setq parinfer-extensions '(defaults pretty-parens evil paredit)))
