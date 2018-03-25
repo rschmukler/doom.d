@@ -121,12 +121,22 @@
   (eldoc-mode)
   (flycheck-add-next-checker 'intero 'haskell-hlint))
 
+(after! haskell-mode
+   (setq haskell-font-lock-symbols t)
+   (add-to-list 'haskell-font-lock-symbols-alist '("<>" . "⊕"))
+   (setq haskell-font-lock-symbols-alist
+         (-reject
+          (lambda (elem)
+            (or
+             (string-equal "::" (car elem))))
+          haskell-font-lock-symbols-alist)))
 
-;; (add-hook
-;;  'before-save-hook
-;;  (lambda ()
-;;    (when (eq major-mode 'haskell-mode)
-;;      (urbint/format-haskell-source))))
+
+(add-hook
+ 'before-save-hook
+ (lambda ()
+   (when (eq major-mode 'haskell-mode)
+     (urbint/format-haskell-source))))
 
 ;; (def-package! parinfer
 ;;   :init
