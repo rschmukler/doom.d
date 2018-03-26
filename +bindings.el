@@ -221,7 +221,8 @@
  ;; Haskell Mode
  (:after haskell-mode
    (:leader
-     :desc "Jump to definition at point"     :n "l" #'+lookup/definition))
+     :desc "Jump to definition at point"     :n "l" #'+lookup/definition
+     :desc "Show IMenu Nodes"                :n "m" #'+lsp-ui-imenu))
 
  ;; Rust Mode
  (:after rust-mode

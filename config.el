@@ -129,8 +129,10 @@
   :after lsp-mode
   :config
   (setq lsp-ui-flycheck-enable t)
+  (setq imenu-auto-rescan t)
   :hook
-  (lsp-mode . lsp-ui-mode))
+  (lsp-mode . lsp-ui-mode)
+  (lsp-ui-mode . flycheck-mode))
 
 (def-package! company-lsp
   :after (lsp-mode lsp-ui)
