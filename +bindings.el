@@ -60,7 +60,7 @@
    :desc "Previous Error"         :n  "["   #'flycheck-previous-error
 
    :desc "Find file content"      :n  "f"   #'counsel-projectile-ag
-   :desc "Find project"           :n  "p"   #'rs/projectile-switch-project-workspace
+   :desc "Find project"           :n  "p"   #'projectile-switch-project
 
    :desc "Eval"                   :n  "e"   #'+eval/buffer
                                   :v  "e"   #'+eval/region
@@ -221,8 +221,7 @@
  ;; Haskell Mode
  (:after haskell-mode
    (:leader
-     :desc "Jump to definition at point"     :n "l" #'intero-goto-definition
-     :desc "Describe symbol at point"        :n "d" #'intero-info))
+     :desc "Jump to definition at point"     :n "l" #'+lookup/definition))
 
  ;; Rust Mode
  (:after rust-mode
@@ -276,9 +275,7 @@
       ;;   a) balance spaces inside brackets/parentheses ( | ) -> (|)
       ;;   b) delete space-indented blocks intelligently
       ;;   c) do none of this when inside a string
-      :i "SPC"                          #'doom/inflate-space-maybe
-      :i [remap delete-backward-char]   #'doom/deflate-space-maybe
-      :i [remap newline]                #'doom/newline-and-indent
+      :i [remap newline]                #'newline-and-indent
 
       (:after org-mode
         (:map org-mode-map

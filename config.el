@@ -34,7 +34,6 @@
       '((t . ivy--regex-ignore-order))))
 
 (after! projectile
-  (setq projectile-switch-project-action #'counsel-projectile-find-file)
   (projectile-mode)
   (projectile-load-known-projects))
 
@@ -146,14 +145,15 @@
 
 
 (after! haskell-mode
-   (setq haskell-font-lock-symbols t)
-   (add-to-list 'haskell-font-lock-symbols-alist '("<>" . "⊕"))
-   (setq haskell-font-lock-symbols-alist
-         (-reject
-          (lambda (elem)
-            (or
-             (string-equal "::" (car elem))))
-          haskell-font-lock-symbols-alist)))
+  (flycheck-mode)
+  (setq haskell-font-lock-symbols t)
+  (add-to-list 'haskell-font-lock-symbols-alist '("<>" . "⊕"))
+  (setq haskell-font-lock-symbols-alist
+        (-reject
+         (lambda (elem)
+           (or
+            (string-equal "::" (car elem))))
+         haskell-font-lock-symbols-alist)))
 
 
 (add-hook
