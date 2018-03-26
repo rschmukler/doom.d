@@ -114,12 +114,36 @@
 (def-package! graphql-mode
   :mode "\\.gql$")
 
-(def-package! intero
-  :after haskell-mode
+;; (def-package! intero
+;;   :after haskell-mode
+;;   :config
+;;   (intero-global-mode 1)
+;;   (eldoc-mode)
+;;   (flycheck-add-next-checker 'intero 'haskell-hlint))
+
+(def-package! lsp-mode
+  :after (:any haskell-mode)
   :config
-  (intero-global-mode 1)
-  (eldoc-mode)
-  (flycheck-add-next-checker 'intero 'haskell-hlint))
+  (lsp-mode))
+
+(def-package! lsp-ui
+  :after lsp-mode
+  :config
+  (setq lsp-ui-flycheck-enable t)
+  :hook
+  (lsp-mode . lsp-ui-mode))
+
+(def-package! company-lsp
+  :after (lsp-mode lsp-ui)
+  :config
+  (setq company-backends '(company-lsp))
+  (setq company-lsp-async t))
+
+(def-package! lsp-haskell
+  :after (lsp-mode lsp-ui haskell-mode)
+  :hook
+  (haskell-mode . lsp-haskell-enable))
+
 
 (after! haskell-mode
    (setq haskell-font-lock-symbols t)

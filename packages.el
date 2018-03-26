@@ -19,3 +19,7 @@
 (package! flycheck-rust)
 (package! intero)
 (package! org)
+(package! lsp-mode)
+(package! lsp-ui :recipe (:fetcher github :repo "emacs-lsp/lsp-ui"))
+(package! lsp-haskell)
+(package! company-lsp)
