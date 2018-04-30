@@ -1,6 +1,6 @@
 ## About
 
-This is my emacs config as a plugin for the amazing [hlissner/.emacs.d](https://github.com/hlissner/.emacs.d).
+This is my `~/doom.d` config for the amazing [hlissner/.emacs.d](https://github.com/hlissner/.emacs.d).
 
 ## Installation
 

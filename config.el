@@ -1,12 +1,5 @@
 ;;; private/rschmukler/config.el -*- lexical-binding: t; -*-
 
-(load! +functions)
-(load! +theming)
-
-(when (featurep 'evil)
-  (load! +bindings)
-  (load! +commands))
-
  (def-package! org
   :config
   (setq org-agenda-files (file-expand-wildcards "~/data/org/*.org"))
@@ -158,11 +151,11 @@
          haskell-font-lock-symbols-alist)))
 
 
-(add-hook
- 'before-save-hook
- (lambda ()
-   (when (eq major-mode 'haskell-mode)
-     (urbint/format-haskell-source))))
+; (add-hook
+;  'before-save-hook
+;  (lambda ()
+;    (when (eq major-mode 'haskell-mode)
+;      (urbint/format-haskell-source))))
 
 ;; (def-package! parinfer
 ;;   :init
@@ -173,7 +166,6 @@
 ;;   (add-hook 'lux-mode-hook #'parinfer-mode))
 
 (def-package! all-the-icons-ivy
-  :after ivy
   :config
   (all-the-icons-ivy-setup))
 
@@ -201,3 +193,9 @@
             (alchemist-project--create-test-for-current-file
              filename (current-buffer))
           (message "No test file found."))))))
+
+(load! +functions)
+(load! +theming)
+(load! +bindings)
+(load! +commands)
+
