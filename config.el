@@ -140,14 +140,15 @@
 
 
 (after! haskell-mode
+  (rainbow-delimiters-mode)
   (flycheck-mode)
   (setq haskell-font-lock-symbols t)
   (add-to-list 'haskell-font-lock-symbols-alist '("<>" . "⊕"))
   (setq haskell-font-lock-symbols-alist
         (-reject
          (lambda (elem)
-           (or
-            (string-equal "::" (car elem))))
+           (or))
+            ;; (string-equal "::" (car elem))))
          haskell-font-lock-symbols-alist)))
 
 
@@ -194,8 +195,8 @@
              filename (current-buffer))
           (message "No test file found."))))))
 
-(load! +functions)
-(load! +theming)
-(load! +bindings)
-(load! +commands)
+(load! "+functions")
+(load! "+theming")
+(load! "+bindings")
+(load! "+commands")
 

@@ -122,3 +122,28 @@ current buffer directory."
         (insert formatted-source)
         (goto-char pt)
         (set-window-start nil wst)))))
+
+(defun empire/haskell/module->test ()
+  "Jump from a module to a test."
+  (let ((filename (->> buffer-file-name
+                       (s-replace "/src/" "/test/")
+                       (s-replace ".hs" "Test.hs")
+                       find-file)))
+    (make-directory (f-dirname filename) t)
+    (find-file filename)))
+
+(defun empire/haskell/test->module ()
+  "Jump from a test to a module."
+  (let ((filename (->> buffer-file-name
+                       (s-replace "/test/" "/src/")
+                       (s-replace "Test.hs" ".hs")
+                       )))
+    (make-directory (f-dirname filename) t)
+    (find-file filename)))
+
+(defun empire/haskell/test<->module ()
+  "Toggle between test and module in Haskell."
+  (interactive)
+  (if (s-contains? "/src/" buffer-file-name)
+      (empire/haskell/module->test)
+    (empire/haskell/test->module)))

@@ -222,7 +222,8 @@
  (:after haskell-mode
    (:leader
      :desc "Jump to definition at point"     :n "l" #'+lookup/definition
-     :desc "Show IMenu Nodes"                :n "m" #'+lsp-ui-imenu))
+     :desc "Show IMenu Nodes"                :n "m" #'+lsp-ui-imenu
+     :desc "Toggle tests and module"         :n "t" #'empire/haskell/test<->module))
 
  ;; Rust Mode
  (:after rust-mode
