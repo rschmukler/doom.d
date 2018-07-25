@@ -7,9 +7,15 @@
   (add-to-list 'default-frame-alist '(alpha . (90)))
   (set-frame-parameter (selected-frame) 'alpha '(90))
   (set-face-attribute 'default nil
-                      :family "InputMono"
-                      :height 120
+                      :family "mononoki"
+                      :height 140
                       :weight 'normal
                       :width 'normal))
 
-(setq neo-theme 'icons)
+;; (setq neo-theme 'icons)
+(doom-themes-neotree-config)
+(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+      doom-themes-enable-italic t) ; if nil, italics is universally disabled
+(doom-themes-org-config)
+
+(load-theme 'doom-dream-gradient t)

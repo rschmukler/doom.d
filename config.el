@@ -142,7 +142,7 @@
 (after! haskell-mode
   (rainbow-delimiters-mode)
   (flycheck-mode)
-  (setq haskell-font-lock-symbols t)
+  ;; (setq haskell-font-lock-symbols t)
   (add-to-list 'haskell-font-lock-symbols-alist '("<>" . "⊕"))
   (setq haskell-font-lock-symbols-alist
         (-reject
