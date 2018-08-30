@@ -143,6 +143,7 @@
             "/bin/"
             "/usr/sbin/"
             "/sbin/"
+            (concat (getenv "HOME") "/.nix-profile/bin")
             (concat (getenv "HOME") "/.cargo/bin")
             (concat (getenv "HOME") "/.local/bin")))
 

@@ -223,6 +223,7 @@
    (:leader
      :desc "Jump to definition at point"     :n "l" #'+lookup/definition
      :desc "Show IMenu Nodes"                :n "m" #'+lsp-ui-imenu
+     :desc "Apply LSP Action"                :n "a" #'lsp-ui-sideline-apply-code-actions
      :desc "Toggle tests and module"         :n "t" #'empire/haskell/test<->module))
 
  ;; Rust Mode

@@ -142,6 +142,7 @@
 (after! haskell-mode
   (rainbow-delimiters-mode)
   (flycheck-mode)
+  (setq lsp-haskell-process-path-hie "hie-wrapper")
   ;; (setq haskell-font-lock-symbols t)
   (add-to-list 'haskell-font-lock-symbols-alist '("<>" . "⊕"))
   (setq haskell-font-lock-symbols-alist
