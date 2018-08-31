@@ -44,21 +44,28 @@
   :config
   (flycheck-mode))
 
-
-(add-hook! flycheck-rust
-  :after rust-mode
+(def-package! lsp-rust
+  :after (lsp-mode lsp-ui rust-mode)
   :config
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+  (setq lsp-rust-rls-command '("rustup" "run" "stable" "rls"))
+  :hook
+  (rust-mode . lsp-rust-enable))
 
-(def-package! racer
-  :after rust-mode
-  :config
-  (setq racer-rust-src-path
-        (concat
-         (replace-regexp-in-string "\n$" "" (shell-command-to-string "rustc --print sysroot"))
-         "/lib/rustlib/src/rust/src"))
-  (company-mode)
-  (eldoc-mode))
+
+;; (add-hook! flycheck-rust
+;;   :after rust-mode
+;;   :config
+;;   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+;; (def-package! racer
+;;   :after rust-mode
+;;   :config
+;;   (setq racer-rust-src-path
+;;         (concat
+;;          (replace-regexp-in-string "\n$" "" (shell-command-to-string "rustc --print sysroot"))
+;;          "/lib/rustlib/src/rust/src"))
+;;   (company-mode)
+;;   (eldoc-mode))
 
 (def-package! flycheck-mix
   :after elixir-mode
@@ -114,7 +121,7 @@
 ;;   (flycheck-add-next-checker 'intero 'haskell-hlint))
 
 (def-package! lsp-mode
-  :after (:any haskell-mode)
+  :after (:any haskell-mode rust-mode)
   :config
   (lsp-mode))
 
