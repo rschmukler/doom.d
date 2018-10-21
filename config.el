@@ -4,6 +4,7 @@
   :config
   (setq org-agenda-files (file-expand-wildcards "~/data/org/*.org"))
   (setq org-directory (expand-file-name "~/data/org"))
+  (setq org-cycle-separator-lines 1)
   (defvar +org-dir (expand-file-name "~/data/org"))
   (setq org-capture-templates
         '(("c" "Code Task" entry (file+headline "~/data/org/main.org" "Coding Tasks")
@@ -33,8 +34,7 @@
 
 (add-hook! elixir-mode
   (flycheck-mode)
-  (rainbow-delimiters-mode)
-  )
+  (rainbow-delimiters-mode))
 
 (add-hook! elm-mode
   (flycheck-mode))
@@ -50,6 +50,10 @@
   (setq lsp-rust-rls-command '("rustup" "run" "stable" "rls"))
   :hook
   (rust-mode . lsp-rust-enable))
+
+
+(def-package! dockerfile-mode
+  :mode "Dockerfile$")
 
 
 ;; (add-hook! flycheck-rust
@@ -94,21 +98,12 @@
   (rainbow-delimiters-mode)
   )
 
-(def-package! clojure-mode
-  :mode "\\.cljs?$"
-  :config
-  (company-mode)
-  (flycheck-mode)
-  (rainbow-delimiters-mode)
-  (setq cider-prompt-for-symbol nil))
+(after! clojure-mode
+  (setq cider-cljs-lein-repl
+	"(do (require 'figwheel-sidecar.repl-api)
+         (figwheel-sidecar.repl-api/start-figwheel!)
+         (figwheel-sidecar.repl-api/cljs-repl))"))
 
-(def-package! cider
-  :after clojure-mode)
-
-(def-package! flycheck-clojure
-  :after clojure-mode
-  :config
-  (add-hook 'flycheck-mode-hook #'flycheck-clojure-setup))
 
 (def-package! graphql-mode
   :mode "\\.gql$")
@@ -121,7 +116,7 @@
 ;;   (flycheck-add-next-checker 'intero 'haskell-hlint))
 
 (def-package! lsp-mode
-  :after (:any haskell-mode rust-mode)
+  :after (:any haskell-mode rust-mode python-mode)
   :config
   (lsp-mode))
 
@@ -132,6 +127,7 @@
   (setq imenu-auto-rescan t)
   :hook
   (lsp-mode . lsp-ui-mode)
+  (lsp-mode . lsp-ui-peek-mode)
   (lsp-ui-mode . flycheck-mode))
 
 (def-package! company-lsp
@@ -141,9 +137,20 @@
   (setq company-lsp-async t))
 
 (def-package! lsp-haskell
-  :after (lsp-mode lsp-ui haskell-mode)
+  :after
+  (lsp-mode lsp-ui haskell-mode)
   :hook
   (haskell-mode . lsp-haskell-enable))
+
+(def-package! lsp-python
+  :hook
+  (python-mode . lsp-python-enable))
+
+(def-package! yapfify
+  :hook
+  (python-mode . yapf-mode)
+  (before-save . yapify-buffer))
+
 
 
 (after! haskell-mode
@@ -160,19 +167,10 @@
          haskell-font-lock-symbols-alist)))
 
 
-; (add-hook
-;  'before-save-hook
-;  (lambda ()
-;    (when (eq major-mode 'haskell-mode)
-;      (urbint/format-haskell-source))))
+(def-package! parinfer
+  :hook
+  (clojure-mode . parinfer-mode))
 
-;; (def-package! parinfer
-;;   :init
-;;   (progn (setq parinfer-extensions '(defaults pretty-parens evil paredit)))
-;;   (add-hook 'lux-mode-hook #'parinfer-mode)
-;;   (add-hook 'clojure-mode-hook #'parinfer-mode)
-;;   (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
-;;   (add-hook 'lux-mode-hook #'parinfer-mode))
 
 (def-package! all-the-icons-ivy
   :config

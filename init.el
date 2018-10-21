@@ -53,7 +53,7 @@
        :tools
        ein               ; tame Jupyter notebooks with emacs
        gist              ; interacting with github gists
-      ;macos             ; MacOS-specific commands
+       macos             ; MacOS-specific commands
        make              ; run make tasks from Emacs
        magit             ;
        password-store    ; password manager for nerds

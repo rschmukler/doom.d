@@ -8,6 +8,8 @@
  "C-k"    #'evil-window-up
  "C-l"    #'evil-window-right
  "A-q"    #'delete-window
+ "C-`"      #'+popup/toggle
+ "<C-tab>"  #'+popup/other
 
 
  :nmvo "C-p"    #'counsel-projectile-find-file
@@ -19,7 +21,6 @@
  "M-x"    #'counsel-M-x
 
  "M-<return>" #'doom/toggle-fullscreen
- "C-`"        #'doom/popup-toggle
 
 
  ;; Text Editing
@@ -104,6 +105,7 @@
      :desc "Previous hunk"     :nv "[" #'git-gutter:previous-hunk)
 
    (:desc "open" :prefix "o"
+     :desc "Org Agenda"          :n  "a" #'org-agenda
      :desc "Default browser"     :n  "b" #'browse-url-of-file
      :desc "Debugger"            :n  "d" #'+debug/open
      :desc "REPL"                :n  "r" #'+eval/repl
@@ -238,14 +240,36 @@
    (:leader
      :desc "Describe symbol at point"     :n "d" #'racket-describe))
 
- ;; clojure-mode
- (:after clojure-mode
-   (:leader
-     :desc "Open the Cider Repl"  :n "r"  #'wpc/find-or-create-clojure-or-clojurescript-repl
-     :desc "Show documentation"   :n "d"  #'cider-doc
-     :desc "Evaluate Function"    :n "e"  #'cider-eval-defun-at-point
-     :desc "Jump to Definition"   :n "l"  #'cider-find-var))
-)
+ ;; cider-mode
+ (:after cider-mode
+   (:map cider-mode-map
+          :localleader
+          :n  "'"  #'cider-jack-in
+          :n  "\"" #'cider-jack-in-clojurescript
+          :n  "b"  #'cider-eval-buffer
+          :n  "B"  #'cider-switch-to-repl-buffer
+          :n  "n"  #'cider-repl-set-ns
+          :n  "j"  #'cider-find-var
+          :n  "h"  #'cider-doc
+          :n  "c"  #'cider-repl-clear-buffer
+          :n  "p"  #'cider-eval-sexp-at-point
+          :n  "t"  #'cider-test-run-ns-tests))
+
+ ;; org-mode
+ (:after org-mode
+   (:map org-mode-map
+          :localleader
+          :n  "t"  #'org-todo
+          :n  "d"  #'org-deadline
+          :n  "s"  #'org-schedule))
+
+ (:after julia-mode
+   (:map julia-mode-map
+          :localleader
+          :n  "b"  #'ess-eval-buffer
+          :n  "p"  #'ess-eval-function-or-paragraph
+          :n  "s"  #'org-schedule))
+ )
 
 
 ;; This section is dedicated to "fixing" certain keys so that they behave
