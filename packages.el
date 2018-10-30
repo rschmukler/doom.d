@@ -21,7 +21,7 @@
 (package! lsp-ui :recipe (:fetcher github :repo "emacs-lsp/lsp-ui"))
 (package! lsp-haskell)
 (package! lsp-rust)
-(package! lsp-python)
+;; (package! lsp-python)
 (package! yapfify)
 (package! company-lsp)
 (package! dockerfile-mode)

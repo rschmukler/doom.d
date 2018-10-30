@@ -142,9 +142,9 @@
   :hook
   (haskell-mode . lsp-haskell-enable))
 
-(def-package! lsp-python
-  :hook
-  (python-mode . lsp-python-enable))
+;; (def-package! lsp-python
+;;   :hook
+;;   (python-mode . lsp-python-enable))
 
 (def-package! yapfify
   :hook
