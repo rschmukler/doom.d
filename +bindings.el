@@ -253,6 +253,7 @@
           :n  "h"  #'cider-doc
           :n  "c"  #'cider-repl-clear-buffer
           :n  "p"  #'cider-eval-sexp-at-point
+          :n  "f"  #'cider-eval-defun-at-point
           :n  "t"  #'cider-test-run-ns-tests))
 
  ;; org-mode

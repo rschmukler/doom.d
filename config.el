@@ -167,9 +167,25 @@
          haskell-font-lock-symbols-alist)))
 
 
-(def-package! parinfer
+(def-package! paxedit
+  :config
+  (map!
+   (:map paxedit-mode-map
+     :n ">>" #'evil-shift-right
+     :n ">e" #'paxedit-transpose-forward
+     :n ">)" #'sp-forward-slurp-sexp
+     :n ">(" #'sp-backward-barf-sexp
+     :n ">I" #'grfn/insert-at-sexp-end
+     :n ">a" #'grfn/insert-at-form-end
+     :n "<<" #'evil-shift-left
+     :n "<e" #'paxedit-transpose-backward
+     :n "<)" #'sp-forward-barf-sexp
+     :n "<(" #'sp-backward-slurp-sexp
+     :n "<I" #'grfn/insert-at-sexp-start
+     :n "<a" #'grfn/insert-at-form-start))
   :hook
-  (clojure-mode . parinfer-mode))
+  (clojure-mode . smartparens-mode)
+  (clojure-mode . paxedit-mode))
 
 
 (def-package! all-the-icons-ivy

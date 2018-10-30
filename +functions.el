@@ -147,3 +147,42 @@ current buffer directory."
   (if (s-contains? "/src/" buffer-file-name)
       (empire/haskell/module->test)
     (empire/haskell/test->module)))
+
+(defmacro define-move-and-insert
+    (name &rest body)
+  `(defun ,name (count &optional vcount skip-empty-lines)
+     ;; Following interactive form taken from the source for `evil-insert'
+     (interactive
+      (list (prefix-numeric-value current-prefix-arg)
+            (and (evil-visual-state-p)
+                 (memq (evil-visual-type) '(line block))
+                 (save-excursion
+                   (let ((m (mark)))
+                     ;; go to upper-left corner temporarily so
+                     ;; `count-lines' yields accurate results
+                     (evil-visual-rotate 'upper-left)
+                     (prog1 (count-lines evil-visual-beginning evil-visual-end)
+                       (set-mark m)))))
+            (evil-visual-state-p)))
+     (atomic-change-group
+       ,@body
+       (evil-insert count vcount skip-empty-lines))))
+
+(define-move-and-insert grfn/insert-at-sexp-end
+  (when (not (equal (get-char) "("))
+    (backward-up-list))
+  (forward-sexp)
+  (backward-char))
+
+(define-move-and-insert grfn/insert-at-sexp-start
+  (backward-up-list)
+  (forward-char))
+
+(define-move-and-insert grfn/insert-at-form-start
+  (backward-sexp)
+  (backward-char)
+  (insert " "))
+
+(define-move-and-insert grfn/insert-at-form-end
+  (forward-sexp)
+  (insert " "))

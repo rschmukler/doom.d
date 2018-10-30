@@ -25,4 +25,4 @@
 (package! yapfify)
 (package! company-lsp)
 (package! dockerfile-mode)
-(package! parinfer)
+(package! paxedit)
