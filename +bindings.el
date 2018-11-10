@@ -82,6 +82,7 @@
      :desc "Describe key"          :n "k" #'describe-key
      :desc "Describe char"         :n "c" #'describe-char
      :desc "Describe mode"         :n "M" #'describe-mode
+     :desc "Show messages"         :n "m" #'view-echo-area-messages
      :desc "Describe variable"     :n "v" #'describe-variable
      :desc "Describe face"         :n "F" #'describe-face
      :desc "Describe DOOM setting" :n "s" #'doom/describe-setting
@@ -240,8 +241,19 @@
    (:leader
      :desc "Describe symbol at point"     :n "d" #'racket-describe))
 
+ (:after elisp-mode
+   (:leader
+     :desc "Describe symbol at point"     :n "d" #'+lookup/documentation
+     :desc "Jump to definition at point"  :n "l" #'+lookup/definition)
+   (:localleader
+     :n "p" #'eval-last-sexp
+     :n "b" #'eval-buffer))
+
  ;; cider-mode
  (:after cider-mode
+   (:leader
+     :desc "Lookup documentation at point" :n  "d"  #'cider-doc
+     :desc "Jump to definition at point"   :n  "l"  #'cider-find-var)
    (:map cider-mode-map
           :localleader
           :n  "'"  #'cider-jack-in
@@ -250,11 +262,19 @@
           :n  "B"  #'cider-switch-to-repl-buffer
           :n  "n"  #'cider-repl-set-ns
           :n  "j"  #'cider-find-var
+          (:desc "docs" :prefix "d"
+            :desc "Browse Namespace"  :n  "n" #'cider-browse-ns
+            :desc "Browse Spec"       :n  "s" #'cider-browse-spec)
           :n  "h"  #'cider-doc
           :n  "c"  #'cider-repl-clear-buffer
+          :n  "i"  #'cider-inspect-last-result
           :n  "p"  #'cider-eval-sexp-at-point
           :n  "f"  #'cider-eval-defun-at-point
-          :n  "t"  #'cider-test-run-ns-tests))
+          :n  "t"  #'cider-test-run-ns-tests
+          :n  "T"  #'cider-test-run-test)
+   (:after cider-browse-ns-mode
+     (:map cider-browse-ns-mode-map
+       :n "RET"       #'cider-browse-ns-operate-at-point)))
 
  ;; org-mode
  (:after org-mode
