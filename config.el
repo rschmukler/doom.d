@@ -99,6 +99,14 @@
   )
 
 (after! clojure-mode
+  (define-clojure-indent
+    (PUT 2)
+    (POST 2)
+    (GET 2)
+    (PATCH 2)
+    (DELETE 2)
+    (context 2)
+    (checking 3))
   (setq cider-cljs-lein-repl
 	"(do (require 'figwheel-sidecar.repl-api)
          (figwheel-sidecar.repl-api/start-figwheel!)
@@ -185,12 +193,8 @@
      :n "<a" #'grfn/insert-at-form-start))
   :hook
   (clojure-mode . smartparens-mode)
-  (clojure-mode . paxedit-mode))
-
-
-(def-package! all-the-icons-ivy
-  :config
-  (all-the-icons-ivy-setup))
+  (clojure-mode . paxedit-mode)
+  (emacs-lisp-mode . paxedit-mode))
 
 (def-package! alchemist
   :after elixir-mode
