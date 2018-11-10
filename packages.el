@@ -4,7 +4,6 @@
 (package! flycheck)
 (package! flycheck-mix)
 (package! flycheck-credo)
-(package! all-the-icons-ivy)
 (package! lux-mode :recipe (:fetcher github :repo "LuxLang/lux" :files ("lux-mode/*")))
 (package! paredit)
 (package! flycheck-clojure)

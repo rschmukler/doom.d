@@ -1,11 +1,10 @@
 ;;; private/rschmukler/theming.el -*- lexical-binding: t; -*-
 
-;; (set-frame-parameter (selected-frame) 'alpha '(100 . 100))
-;; (add-to-list 'default-frame-alist '(alpha . (100. 100)))
-
 (when (window-system)
   (add-to-list 'default-frame-alist '(alpha . (90)))
   (set-frame-parameter (selected-frame) 'alpha '(90))
+  (when (eq system-type 'darwin)
+    (ns-auto-titlebar-mode))
   (set-face-attribute 'default nil
                       :family "mononoki"
                       :height 140
@@ -19,3 +18,5 @@
 (doom-themes-org-config)
 
 (load-theme 'doom-dream-gradient t)
+
+(setq +ivy-buffer-icons t)
