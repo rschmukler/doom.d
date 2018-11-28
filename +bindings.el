@@ -99,6 +99,7 @@
    (:desc "git" :prefix "g"
      :desc "Git status"        :n  "s" #'magit-status
      :desc "Git blame"         :n  "b" #'magit-blame
+     :desc "Git timemachine branch" :n  "B" #'git-timemachine-switch-branch
      :desc "Git time machine"  :n  "t" #'git-timemachine-toggle
      :desc "Git revert hunk"   :n  "r" #'git-gutter:revert-hunk
      :desc "List gists"        :n  "g" #'+gist:list
@@ -112,8 +113,8 @@
      :desc "REPL"                :n  "r" #'+eval/repl
                                  :v  "r" #'+eval:repl
      :desc "Neotree"             :n  "n" #'+neotree/toggle
-     :desc "Terminal"            :n  "t" #'+term/popup
-     :desc "Terminal in project" :n  "T" #'+term/popup-in-project
+     :desc "Terminal"            :n  "t" #'+term/open-popup
+     :desc "Terminal in project" :n  "T" #'+term/open-popup-in-project
      :desc "Org Capture"         :n  "o" #'org-capture)
 
    (:desc "orgmode" :prefix "O"
