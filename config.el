@@ -47,7 +47,7 @@
 (def-package! lsp-rust
   :after (lsp-mode lsp-ui rust-mode)
   :config
-  (setq lsp-rust-rls-command '("rustup" "run" "stable" "rls"))
+  (setq lsp-rust-rls-command '("rustup" "run" "nightly" "rls"))
   :hook
   (rust-mode . lsp-rust-enable))
 
