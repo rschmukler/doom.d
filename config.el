@@ -121,43 +121,18 @@
 (def-package! graphql-mode
   :mode "\\.gql$")
 
-;; (def-package! intero
-;;   :after haskell-mode
-;;   :config
-;;   (intero-global-mode 1)
-;;   (eldoc-mode)
-;;   (flycheck-add-next-checker 'intero 'haskell-hlint))
-
 (def-package! lsp-mode
-  :after (:any haskell-mode rust-mode python-mode)
+  :hook (python-mode . lsp)
   :config
-  (lsp-mode))
-
-(def-package! lsp-ui
-  :after lsp-mode
-  :config
-  (setq lsp-ui-flycheck-enable t)
-  (setq imenu-auto-rescan t)
-  :hook
-  (lsp-mode . lsp-ui-mode)
-  (lsp-mode . lsp-ui-peek-mode)
-  (lsp-ui-mode . flycheck-mode))
-
-(def-package! company-lsp
-  :after (lsp-mode lsp-ui)
-  :config
-  (setq company-backends '(company-lsp))
-  (setq company-lsp-async t))
+  (require 'lsp-clients))
+(def-package! lsp-ui)
+(def-package! company-lsp)
 
 (def-package! lsp-haskell
   :after
   (lsp-mode lsp-ui haskell-mode)
   :hook
   (haskell-mode . lsp-haskell-enable))
-
-;; (def-package! lsp-python
-;;   :hook
-;;   (python-mode . lsp-python-enable))
 
 (def-package! yapfify
   :hook
