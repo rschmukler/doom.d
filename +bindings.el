@@ -11,6 +11,8 @@
  "C-`"      #'+popup/toggle
  "<C-tab>"  #'+popup/other
 
+ :n "-" #'ranger
+
 
  :nmvo "C-p"    #'counsel-projectile-find-file
 

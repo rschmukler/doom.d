@@ -21,7 +21,8 @@
        ivy               ; a search engine for love and life
 
        :emacs
-       dired             ; making dired pretty [functional]
+       (dired +ranger
+              +icons)    ; making dired pretty [functional]
        electric          ; smarter, keyword-based electric-indent
       ;eshell            ; a consistent, cross-platform shell (WIP)
        imenu             ; an imenu sidebar and searchable code index

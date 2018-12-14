@@ -56,6 +56,11 @@
   :mode "Dockerfile$")
 
 
+(after! ranger
+  :config
+  (setq ranger-show-literal nil))
+
+
 ;; (add-hook! flycheck-rust
 ;;   :after rust-mode
 ;;   :config
