@@ -115,24 +115,35 @@
   (setq cider-cljs-lein-repl
 	"(do (require 'figwheel-sidecar.repl-api)
          (figwheel-sidecar.repl-api/start-figwheel!)
-         (figwheel-sidecar.repl-api/cljs-repl))"))
+         (figwheel-sidecar.repl-api/cljs-repl))")
+  (setq cljr-magic-require-namespaces
+        '(("io" . "clojure.java.io")
+          ("set" . "clojure.set")
+          ("str" . "cuerdas.core")
+          ("walk" . "clojure.walk")
+          ("zip" . "clojure.zip")
+          ("async" . "clojure.core.async")
+          ("component" . "com.stuartsierra.component")
+          ("sql" . "honeysql.core")
+          ("json" . "cheshire.core")
+          ("s" . "clojure.spec.alpha"))))
 
 
 (def-package! graphql-mode
   :mode "\\.gql$")
 
 (def-package! lsp-mode
-  :hook (python-mode . lsp)
+  :hook
+  ;; (haskell-mode . lsp)
+  (python-mode . lsp)
   :config
   (require 'lsp-clients))
+
 (def-package! lsp-ui)
 (def-package! company-lsp)
-
 (def-package! lsp-haskell
-  :after
-  (lsp-mode lsp-ui haskell-mode)
-  :hook
-  (haskell-mode . lsp-haskell-enable))
+  :config
+  (setq lsp-haskell-process-path-hie "hie-wrapper"))
 
 (def-package! yapfify
   :hook
@@ -141,10 +152,10 @@
 
 
 
-(after! haskell-mode
+(def-package! haskell-mode
+  :mode "\\.hs$"
+  :config
   (rainbow-delimiters-mode)
-  (flycheck-mode)
-  (setq lsp-haskell-process-path-hie "hie-wrapper")
   ;; (setq haskell-font-lock-symbols t)
   (add-to-list 'haskell-font-lock-symbols-alist '("<>" . "⊕"))
   (setq haskell-font-lock-symbols-alist
@@ -153,6 +164,9 @@
            (or))
             ;; (string-equal "::" (car elem))))
          haskell-font-lock-symbols-alist)))
+
+(def-package! flycheck-haskell
+  :hook (haskell-mode . flycheck-haskell-setup))
 
 
 (def-package! paxedit
