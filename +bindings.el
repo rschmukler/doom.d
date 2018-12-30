@@ -1,6 +1,9 @@
 ;;; private/rschmukler/+bindings.el -*- lexical-binding: t; -*-
 
 
+(when (eq system-type 'gnu/linux)
+  (setq x-super-keysym 'meta))
+
  (map!
  ;; Window Movements
  "C-h"    #'evil-window-left
