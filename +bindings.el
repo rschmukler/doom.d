@@ -72,9 +72,13 @@
                                   :v  "e"   #'+eval/region
 
    :desc "Switch to last buffer"  :n  "SPC" #'wc/switch-to-mru-buffer
+   :desc "Save buffer"            :n  "RET" #'save-buffer
+
 
    :desc "Delete the window"      :n  "q"   #'delete-window
    :desc "Ivy open buffers"       :n  "b"   #'ivy-switch-buffer
+
+   :desc "Toggle between file and tests"  :n "t" #'projectile-toggle-between-implementation-and-test
 
    (:desc "help" :prefix "h"
      :n "h" help-map
@@ -232,8 +236,7 @@
    (:leader
      :desc "Jump to definition at point"     :n "l" #'+lookup/definition
      :desc "Show IMenu Nodes"                :n "m" #'+lsp-ui-imenu
-     :desc "Apply LSP Action"                :n "a" #'lsp-ui-sideline-apply-code-actions
-     :desc "Toggle tests and module"         :n "t" #'empire/haskell/test<->module))
+     :desc "Apply LSP Action"                :n "a" #'lsp-ui-sideline-apply-code-actions))
 
  ;; Rust Mode
  (:after rust-mode

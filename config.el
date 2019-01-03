@@ -28,6 +28,11 @@
       '((t . ivy--regex-ignore-order))))
 
 (after! projectile
+  (setq projectile-create-missing-test-files t)
+  (projectile-register-project-type 'haskell-stack '("stack.yaml")
+                                    :compile "stack build"
+                                    :test "stack build --test"
+                                    :test-suffix "Test")
   (projectile-mode)
   (projectile-load-known-projects))
 
@@ -47,7 +52,7 @@
 (def-package! lsp-rust
   :after (lsp-mode lsp-ui rust-mode)
   :config
-  (setq lsp-rust-rls-command '("rustup" "run" "nightly" "rls"))
+  (setq lsp-rust-rls-command '("rustup" "run" "nightly-2018-09-22" "rls"))
   :hook
   (rust-mode . lsp-rust-enable))
 
