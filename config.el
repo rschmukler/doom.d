@@ -123,15 +123,19 @@
          (figwheel-sidecar.repl-api/cljs-repl))")
   (setq cljr-magic-require-namespaces
         '(("io" . "clojure.java.io")
+          ("sh" . "clojure.java.shell")
           ("set" . "clojure.set")
           ("str" . "cuerdas.core")
+          ("path" . "pathetic.core")
           ("walk" . "clojure.walk")
           ("zip" . "clojure.zip")
           ("async" . "clojure.core.async")
           ("component" . "com.stuartsierra.component")
           ("sql" . "honeysql.core")
+          ("csv" . "clojure.data.csv")
           ("json" . "cheshire.core")
-          ("s" . "clojure.spec.alpha"))))
+          ("s" . "clojure.spec.alpha")
+          ("fs" . "me.raynes.fs"))))
 
 
 (def-package! graphql-mode
