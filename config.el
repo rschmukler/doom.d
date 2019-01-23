@@ -105,8 +105,7 @@
   :config
   (company-mode)
   (flycheck-mode)
-  (rainbow-delimiters-mode)
-  )
+  (rainbow-delimiters-mode))
 
 (after! clojure-mode
   (define-clojure-indent
@@ -131,11 +130,14 @@
           ("zip" . "clojure.zip")
           ("async" . "clojure.core.async")
           ("component" . "com.stuartsierra.component")
+          ("http" . "clj-http.client")
+          ("url" . "cemerick.url" )
           ("sql" . "honeysql.core")
           ("csv" . "clojure.data.csv")
           ("json" . "cheshire.core")
           ("s" . "clojure.spec.alpha")
-          ("fs" . "me.raynes.fs"))))
+          ("fs" . "me.raynes.fs")
+          ("ig" . "integrant.core"))))
 
 
 (def-package! graphql-mode
