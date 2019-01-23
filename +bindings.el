@@ -244,10 +244,11 @@
 
   ;; Haskell Mode
   (:after haskell-mode
-    (:leader
-      :desc "Jump to definition at point"     :n "l" #'+lookup/definition
-      :desc "Show IMenu Nodes"                :n "m" #'+lsp-ui-imenu
-      :desc "Apply LSP Action"                :n "a" #'lsp-ui-sideline-apply-code-actions))
+   :map haskell-mode-map
+   :leader
+   :desc "Jump to definition at point"  "l" #'+lookup/definition
+   :desc "Show IMenu Nodes"             "m" #'+lsp-ui-imenu
+   :desc "Apply LSP Action"             "a" #'lsp-ui-sideline-apply-code-actions)
 
   ;; Rust Mode
   (:after rust-mode

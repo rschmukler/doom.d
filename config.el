@@ -151,6 +151,7 @@
 (def-package! lsp-ui)
 (def-package! company-lsp)
 (def-package! lsp-haskell
+  :after haskell-mode
   :config
   (setq lsp-haskell-process-path-hie "hie-wrapper"))
 
