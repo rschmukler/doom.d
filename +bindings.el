@@ -245,8 +245,7 @@
   ;; Haskell Mode
   (:after haskell-mode
    :map haskell-mode-map
-   :leader
-   :desc "Jump to definition at point"  "l" #'+lookup/definition
+   :localleader
    :desc "Show IMenu Nodes"             "m" #'+lsp-ui-imenu
    :desc "Apply LSP Action"             "a" #'lsp-ui-sideline-apply-code-actions)
 

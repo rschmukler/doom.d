@@ -123,7 +123,9 @@
   (setq cljr-magic-require-namespaces
         '(("io" . "clojure.java.io")
           ("sh" . "clojure.java.shell")
+          ("jdbc" . "clojure.java.jdbc")
           ("set" . "clojure.set")
+          ("time" . "java-time")
           ("str" . "cuerdas.core")
           ("path" . "pathetic.core")
           ("walk" . "clojure.walk")
@@ -137,7 +139,8 @@
           ("json" . "cheshire.core")
           ("s" . "clojure.spec.alpha")
           ("fs" . "me.raynes.fs")
-          ("ig" . "integrant.core"))))
+          ("ig" . "integrant.core")
+          ("cp" . "com.climate.claypoole"))))
 
 
 (def-package! graphql-mode
@@ -145,7 +148,7 @@
 
 (def-package! lsp-mode
   :hook
-  ;; (haskell-mode . lsp)
+  (haskell-mode . lsp)
   (python-mode . lsp)
   :config
   (require 'lsp-clients))
@@ -177,8 +180,8 @@
             ;; (string-equal "::" (car elem))))
          haskell-font-lock-symbols-alist)))
 
-(def-package! flycheck-haskell
-  :hook (haskell-mode . flycheck-haskell-setup))
+;; (def-package! flycheck-haskell
+;;   :hook (haskell-mode . flycheck-haskell-setup))
 
 
 (def-package! paxedit
