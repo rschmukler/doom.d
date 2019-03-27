@@ -1,6 +1,6 @@
 ;;; private/rschmukler/config.el -*- lexical-binding: t; -*-
 
- (def-package! org
+(def-package! org
   :config
   (setq org-agenda-files (file-expand-wildcards "~/data/org/*.org"))
   (setq org-directory (expand-file-name "~/data/org"))
@@ -25,7 +25,7 @@
 
 (after! ivy
   (setq ivy-re-builders-alist
-      '((t . ivy--regex-ignore-order))))
+        '((t . ivy--regex-ignore-order))))
 
 (after! projectile
   (setq projectile-create-missing-test-files t)
@@ -107,6 +107,11 @@
   (flycheck-mode)
   (rainbow-delimiters-mode))
 
+(def-package! aggressive-indent
+  :hook
+  (clojure-mode . aggressive-indent-mode)
+  (lisp-mode . aggressive-indent-mode))
+
 (after! clojure-mode
   (define-clojure-indent
     (PUT 2)
@@ -115,9 +120,11 @@
     (PATCH 2)
     (DELETE 2)
     (context 2)
+    (for-all 2)
     (checking 3))
+  (setq clojure-align-forms-automatically t)
   (setq cider-cljs-lein-repl
-	"(do (require 'figwheel-sidecar.repl-api)
+        "(do (require 'figwheel-sidecar.repl-api)
          (figwheel-sidecar.repl-api/start-figwheel!)
          (figwheel-sidecar.repl-api/cljs-repl))")
   (setq cljr-magic-require-namespaces
@@ -140,7 +147,12 @@
           ("s" . "clojure.spec.alpha")
           ("fs" . "me.raynes.fs")
           ("ig" . "integrant.core")
-          ("cp" . "com.climate.claypoole"))))
+          ("cp" . "com.climate.claypoole")
+          ("re-frame" . "re-frame.core")
+          ("rf"       . "re-frame.core")
+          ("re"       . "reagent.core")
+          ("reagent"  . "reagent.core")
+          ("u.core"   . "utopia.core"))))
 
 
 (def-package! graphql-mode
@@ -177,7 +189,7 @@
         (-reject
          (lambda (elem)
            (or))
-            ;; (string-equal "::" (car elem))))
+         ;; (string-equal "::" (car elem))))
          haskell-font-lock-symbols-alist)))
 
 ;; (def-package! flycheck-haskell
