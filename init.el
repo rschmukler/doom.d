@@ -8,8 +8,6 @@
         +devdocs         ; ...on devdocs.io online
         +docsets)        ; ...or in Dash docsets locally
        snippets          ; my elves. They type so I don't have to
-       spellcheck        ; tasing you for misspelling mispelling
-       syntax-checker    ; tasing you for every semicolon you forget
        workspaces        ; tab emulation, persistence & separate workspaces
 
        :completion
@@ -35,7 +33,7 @@
        :ui
        doom              ; what makes DOOM look the way it does
        doom-dashboard    ; a nifty splash screen for Emacs
-       doom-modeline     ; a snazzy Atom-inspired mode-line
+       modeline          ; a snazzy Atom-inspired mode-line
        doom-quit         ; DOOM quit-message prompts when you quit Emacs
        evil-goggles      ; display visual hints when editing in evil
        hl-todo           ; highlight TODO/FIXME/NOTE tags
@@ -62,6 +60,8 @@
       ;rgb               ; creating color strings
        tmux              ; an API for interacting with tmux
        upload            ; map local to remote projects via ssh/ftp
+       flycheck
+       flyspell
 
        :lang
        assembly          ; assembly for fun or debugging
