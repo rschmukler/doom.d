@@ -184,7 +184,7 @@
   :config
   (rainbow-delimiters-mode)
   ;; (setq haskell-font-lock-symbols t)
-  (add-to-list 'haskell-font-lock-symbols-alist '("<>" . "⊕"))
+  (add-to-list ("<>" . "⊕"))
   (setq haskell-font-lock-symbols-alist
         (-reject
          (lambda (elem)
@@ -196,26 +196,22 @@
 ;;   :hook (haskell-mode . flycheck-haskell-setup))
 
 
-(def-package! paxedit
+(def-package! lispyville
+  :hook ((emacs-lisp-mode clojure-mode) . lispyville-mode)
   :config
-  (map!
-   (:map paxedit-mode-map
-     :n ">>" #'evil-shift-right
-     :n ">e" #'paxedit-transpose-forward
-     :n ">)" #'sp-forward-slurp-sexp
-     :n ">(" #'sp-backward-barf-sexp
-     :n ">I" #'grfn/insert-at-sexp-end
-     :n ">a" #'grfn/insert-at-form-end
-     :n "<<" #'evil-shift-left
-     :n "<e" #'paxedit-transpose-backward
-     :n "<)" #'sp-forward-barf-sexp
-     :n "<(" #'sp-backward-slurp-sexp
-     :n "<I" #'grfn/insert-at-sexp-start
-     :n "<a" #'grfn/insert-at-form-start))
-  :hook
-  (clojure-mode . smartparens-mode)
-  (clojure-mode . paxedit-mode)
-  (emacs-lisp-mode . paxedit-mode))
+  (lispyville-set-key-theme
+   '(operators
+     c-w
+     prettify
+     text-objects
+     atom-movement
+     commentary
+     wrap
+     slurp/barf-lispy
+     additional
+     additional-movement
+     additional-insert
+     escape)))
 
 (def-package! alchemist
   :after elixir-mode
