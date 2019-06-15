@@ -4,6 +4,9 @@
 (when (eq system-type 'gnu/linux)
   (setq x-super-keysym 'meta))
 
+(when (eq system-type 'darwin)
+  (setq mac-command-modifier 'meta))
+
  (map!
 
   ;; Ensure there are no conflicts
