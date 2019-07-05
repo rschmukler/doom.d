@@ -15,6 +15,8 @@
            "* %?\n\n"))))
 
 (after! neotree
+  (setq doom-themes-neotree-file-icons 'icons)
+  (setq doom-themes-neotree-enable-file-icons 'icons)
   (setq neo-theme 'icons))
 
 (after! company
@@ -47,15 +49,9 @@
 (def-package! rust-mode
   :mode "\\.rs$"
   :config
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+  (setq rust-format-on-save t)
   (flycheck-mode))
-
-(def-package! lsp-rust
-  :after (lsp-mode lsp-ui rust-mode)
-  :config
-  (setq lsp-rust-rls-command '("rustup" "run" "nightly-2018-09-22" "rls"))
-  :hook
-  (rust-mode . lsp-rust-enable))
-
 
 (def-package! dockerfile-mode
   :mode "Dockerfile$")
@@ -110,6 +106,7 @@
 (def-package! aggressive-indent
   :hook
   (clojure-mode . aggressive-indent-mode)
+  (hy-mode . aggressive-indent-mode)
   (lisp-mode . aggressive-indent-mode))
 
 (after! clojure-mode
@@ -154,7 +151,6 @@
           ("reagent"  . "reagent.core")
           ("u.core"   . "utopia.core"))))
 
-
 (def-package! graphql-mode
   :mode "\\.gql$")
 
@@ -162,11 +158,17 @@
   :hook
   (haskell-mode . lsp)
   (python-mode . lsp)
-  :config
-  (require 'lsp-clients))
+  (rust-mode . lsp)
+  :commands
+  lsp)
 
-(def-package! lsp-ui)
-(def-package! company-lsp)
+(def-package! lsp-ui
+  :commands
+  lsp-ui-mode)
+
+(def-package! company-lsp
+  :commands company-lsp)
+
 (def-package! lsp-haskell
   :after haskell-mode
   :config
@@ -197,7 +199,7 @@
 
 
 (def-package! lispyville
-  :hook ((emacs-lisp-mode clojure-mode) . lispyville-mode)
+  :hook ((emacs-lisp-mode clojure-mode hy-mode) . lispyville-mode)
   :config
   (lispyville-set-key-theme
    '(operators
