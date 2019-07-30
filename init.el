@@ -162,7 +162,7 @@
 (global-auto-revert-mode t)
 
 (setq
- whitespace-line-column 80
+ whitespace-line-column 100
  whitespace-style
  '(face trailing lines-tail))
 (global-whitespace-mode)
