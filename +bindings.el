@@ -254,9 +254,13 @@
 
   ;; Rust Mode
   (:after rust-mode
-    (:leader
-      :desc "Lookup documentation at point"   :n "d" #'racer-describe
-      :desc "Jump to definition at point"     :n "l" #'racer-find-definition))
+    (:map rust-mode-map
+      :leader
+      :desc "Find documentation" :n "d" #'+lookup/documentation
+      :desc "Find definition" :n "l" #'+lookup/definition
+      :localleader
+      :desc "Peek implementations" :n "i" #'lsp-ui-peek-find-implementation
+      :desc "Apply LSP Code Action" :n "a" #'lsp-ui-sideline-apply-code-actions))
 
 
   ;; Racket Mode
@@ -272,29 +276,32 @@
       :n "p" #'eval-last-sexp
       :n "b" #'eval-buffer))
 
+  (:after clojure-mode
+    (:map clojure-mode-map
+      :localleader
+      :n "'" #'cider-jack-in
+      :n "\"" #'cider-jack-in-clojurescript))
   ;; cider-mode
   (:after cider-mode
-    (:leader
-      :desc "Lookup documentation at point" :n  "d"  #'cider-doc
-      :desc "Jump to definition at point"   :n  "l"  #'cider-find-var)
     (:map cider-mode-map
+      :leader
+      :desc "Lookup documentation at point" :n "d" #'cider-doc
+      :desc "Jump to definition at point" :n "l" #'cider-find-var
       :localleader
-      :n  "'"  #'cider-jack-in
-      :n  "\"" #'cider-jack-in-clojurescript
-      :n  "b"  #'cider-eval-buffer
-      :n  "B"  #'cider-switch-to-repl-buffer
-      :n  "n"  #'cider-repl-set-ns
-      :n  "j"  #'cider-find-var
+      :n "b" #'cider-eval-buffer
+      :n "B" #'cider-switch-to-repl-buffer
+      :n "n" #'cider-repl-set-ns
+      :n "j" #'cider-find-var
       (:desc "docs" :prefix "d"
-        :desc "Browse Namespace"  :n  "n" #'cider-browse-ns
-        :desc "Browse Spec"       :n  "s" #'cider-browse-spec)
-      :n  "h"  #'cider-doc
-      :n  "c"  #'cider-repl-clear-buffer
-      :n  "i"  #'cider-inspect-last-result
-      :n  "p"  #'cider-eval-sexp-at-point
-      :n  "f"  #'cider-eval-defun-at-point
-      :n  "t"  #'cider-test-run-ns-tests
-      :n  "T"  #'cider-test-run-test)
+        :desc "Browse Namespace" :n "n" #'cider-browse-ns
+        :desc "Browse Spec" :n "s" #'cider-browse-spec)
+      :n "h" #'cider-doc
+      :n "c" #'cider-repl-clear-buffer
+      :n "i" #'cider-inspect-last-result
+      :n "p" #'cider-eval-sexp-at-point
+      :n "f" #'cider-eval-defun-at-point
+      :n "t" #'cider-test-run-ns-tests
+      :n "T" #'cider-test-run-test)
     (:after cider-browse-ns-mode
       (:map cider-browse-ns-mode-map
         :n "RET"       #'cider-browse-ns-operate-at-point)))
