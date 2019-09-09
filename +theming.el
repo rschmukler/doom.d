@@ -40,3 +40,10 @@
                            (rs/initialize-theming))))))
 
 (setq +ivy-buffer-icons t)
+
+;; (require 'color)
+;; (set-face-attribute 'org-block nil :background
+;; (color-darken-name
+;; (face-attribute 'default :background) 1))
+;; (set-face-attribute 'org-block-begin-line nil :background (face-attribute 'default :background))
+;; (set-face-attribute 'org-block-end-line nil :background (face-attribute 'default :background))
