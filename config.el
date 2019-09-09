@@ -53,6 +53,9 @@
   (setq rust-format-on-save t)
   (flycheck-mode))
 
+(after! rustic
+  (setq rustic-format-on-save t))
+
 (def-package! dockerfile-mode
   :mode "Dockerfile$")
 
@@ -61,6 +64,11 @@
   :config
   (setq ranger-show-literal nil))
 
+
+(def-package! reason-mode
+  :mode "\\.re$"
+  :hook
+  (before-save . refmt))
 
 ;; (add-hook! flycheck-rust
 ;;   :after rust-mode
@@ -118,7 +126,8 @@
     (DELETE 2)
     (context 2)
     (for-all 2)
-    (checking 3))
+    (checking 3)
+    (>defn 1))
   (setq clojure-align-forms-automatically t)
   (setq cider-cljs-lein-repl
         "(do (require 'figwheel-sidecar.repl-api)
@@ -158,7 +167,15 @@
   :hook
   (haskell-mode . lsp)
   (python-mode . lsp)
-  (rust-mode . lsp)
+  (rustic-mode . lsp)
+  (reason-mode . lsp)
+  :config
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection "reason-language-server")
+                    :major-modes '(reason-mode)
+                    :notification-handlers (ht ("client/registerCapability" 'ignore))
+                    :priority 1
+                    :server-id 'reason-ls))
   :commands
   lsp)
 
@@ -179,6 +196,11 @@
   (python-mode . yapf-mode)
   (before-save . yapify-buffer))
 
+(after! org-babel
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((ipython . t))))
 
 
 (def-package! haskell-mode

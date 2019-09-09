@@ -81,12 +81,12 @@
        (java +meghanada) ; the poster child for carpal tunnel syndrome
        javascript        ; all(hope(abandon(ye(who(enter(here))))))
        julia             ; a better, faster MATLAB
-       latex             ; writing papers in Emacs has never been so fun
+      ;latex             ; writing papers in Emacs has never been so fun
        ledger            ; an accounting system in Emacs
        lua               ; one-based indices? one-based indices
        markdown          ; writing docs for people to ignore
        nix               ; I hereby declare "nix geht mehr!"
-       ocaml             ; an objective camel
+      ;ocaml             ; an objective camel
        (org              ; organize your plain life in plain text
         +attach          ; custom attachment system
         +babel           ; running code in org
@@ -148,6 +148,7 @@
             "/bin/"
             "/usr/sbin/"
             "/sbin/"
+            (concat (getenv "HOME") "/.opam/4.02.3/bin")
             (concat (getenv "HOME") "/.nix-profile/bin")
             (concat (getenv "HOME") "/.cargo/bin")
             (concat (getenv "HOME") "/.local/bin")))
@@ -176,7 +177,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(safe-local-variable-values
+   '((setq cider-clojure-cli-global-options "-A:default")
+     (eval setenv "LD_PRELOAD" "libcurl.so.3"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
