@@ -178,7 +178,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(safe-local-variable-values
-   '((setq cider-clojure-cli-global-options "-A:default")
+   '((setq cider-clojure-cli-global-options "-Adev")
+     (setq cider-clojure-cli-global-options "-A:default")
      (eval setenv "LD_PRELOAD" "libcurl.so.3"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

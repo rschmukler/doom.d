@@ -27,7 +27,15 @@
 
 (after! ivy
   (setq ivy-re-builders-alist
-        '((t . ivy--regex-ignore-order))))
+        '((t . ivy--regex-ignore-order)))
+
+  (setq ivy-initial-inputs-alist
+        '((counsel-minor . "")
+          (counsel-package . "")
+          (counsel-org-capture . "")
+          (counsel-M-x . "")
+          (counsel-describe-function . "")
+          (counsel-describe-variable . ""))))
 
 (after! projectile
   (setq projectile-create-missing-test-files t)
@@ -96,9 +104,6 @@
   (setq flycheck-elixir-credo-strict t)
   (add-hook 'flycheck-mode-hook #'flycheck-credo-setup))
 
-(def-package! lux-mode
-  :mode "\\.lux$")
-
 (def-package! erlang
   :mode "\\.erl$"
   :config
@@ -117,6 +122,18 @@
   (hy-mode . aggressive-indent-mode)
   (lisp-mode . aggressive-indent-mode))
 
+(def-package! helm-cider
+  :hook (cider-mode . helm-cider-mode))
+
+(def-package! flycheck-clj-kondo
+  :after clojure-mode
+  :config
+  (dolist (checkers '((clj-kondo-clj . clojure-joker)
+                    (clj-kondo-cljs . clojurescript-joker)
+                    (clj-kondo-cljc . clojure-joker)
+                    (clj-kondo-edn . edn-joker)))
+  (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
+
 (after! clojure-mode
   (define-clojure-indent
     (PUT 2)
@@ -127,7 +144,29 @@
     (context 2)
     (for-all 2)
     (checking 3)
-    (>defn 1))
+    (>defn 1)
+    (match 1)
+    (case 1)
+    (describe 1)
+    (it 2)
+    (fn-traced 1)
+    (assert-match 1))
+  (defun rs/ig/restart ()
+    "Calls Integrant halt followed by integrant go"
+    (interactive)
+    (cider-interactive-eval "(do (integrant.repl/halt) (integrant.repl/go))"))
+
+  (defun rs/ig/reset ()
+    "Calls Integrant reset"
+    (interactive)
+    (cider-interactive-eval "(integrant.repl/reset)"))
+
+  (defun rs/user/sync-libs ()
+    "Calls Integrant reset"
+    (interactive)
+    (cider-interactive-eval "(user/sync-libs)"))
+
+
   (setq clojure-align-forms-automatically t)
   (setq cider-cljs-lein-repl
         "(do (require 'figwheel-sidecar.repl-api)
@@ -158,7 +197,8 @@
           ("rf"       . "re-frame.core")
           ("re"       . "reagent.core")
           ("reagent"  . "reagent.core")
-          ("u.core"   . "utopia.core"))))
+          ("u.core"   . "utopia.core")
+          ("gen" . "clojure.spec.gen.alpha"))))
 
 (def-package! graphql-mode
   :mode "\\.gql$")
@@ -219,9 +259,11 @@
 ;; (def-package! flycheck-haskell
 ;;   :hook (haskell-mode . flycheck-haskell-setup))
 
+(def-package! dhall-mode
+  :mode "\\.dhall$")
 
 (def-package! lispyville
-  :hook ((emacs-lisp-mode clojure-mode hy-mode) . lispyville-mode)
+  :hook ((emacs-lisp-mode clojure-mode hy-mode json-mode) . lispyville-mode)
   :config
   (lispyville-set-key-theme
    '(operators

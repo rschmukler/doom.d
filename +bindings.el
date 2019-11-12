@@ -79,6 +79,7 @@
 
    :desc "Next Error"             :n  "]"   #'flycheck-next-error
    :desc "Previous Error"         :n  "["   #'flycheck-previous-error
+   :desc "Show flycheck errors"   :n  "!"   #'flycheck-list-errors
 
    :desc "Find file content"      :n  "f"   #'counsel-projectile-ag
    :desc "Find project"           :n  "p"   #'projectile-switch-project
@@ -236,9 +237,7 @@
      "C-o"      #'ivy-dispatching-done)
    (:map counsel-ag-map
      [backtab]  #'+ivy/wgrep-occur           ; search/replace on results
-     "C-SPC"    #'counsel-git-grep-recenter  ; preview
-     "M-RET"    (+ivy-do-action! #'+ivy-git-grep-other-window-action)))
-
+     "C-SPC"    #'counsel-git-grep-recenter)) ; preview
  ;; Elixir Mode
  (:after elixir-mode
    (:leader
@@ -279,6 +278,13 @@
 
  (:after clojure-mode
    (:map clojure-mode-map
+     :leader
+     :n "\\" #'helm-cider-apropos
+     :n "DEL" #'helm-cider-apropos-ns
+     (:desc "reload" :prefix "r"
+       :desc "Refresh user libraries" :n "l" #'rs/user/sync-libs
+       :desc "Restart Integrant" :n "r" #'rs/ig/restart
+       :desc "Reload Integrant" :n "R" #'rs/ig/reset)
      :localleader
      :n "'" #'cider-jack-in
      :n "\"" #'cider-jack-in-clojurescript))
@@ -294,9 +300,13 @@
      :n "n" #'cider-repl-set-ns
      :n "j" #'cider-find-var
      :n "s" #'cider-browse-spec
+     :n "S" #'helm-cider-spec-ns
+     :n "l" #'cljr-move-to-let
+     :n "L" #'cljr-introduce-let
      (:desc "docs" :prefix "d"
        :desc "Browse Namespace" :n "n" #'cider-browse-ns
-       :desc "Browse Spec" :n "s" #'cider-browse-spec)
+       :desc "Browse Spec" :n "s" #'cider-browse-spec
+       :desc "Load ClojureDoc" :n "d" #'cider-clojuredocs)
      :n "h" #'cider-doc
      :n "c" #'cider-repl-clear-buffer
      :n "i" #'cider-inspect-last-result

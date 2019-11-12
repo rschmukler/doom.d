@@ -47,3 +47,5 @@
 ;; (face-attribute 'default :background) 1))
 ;; (set-face-attribute 'org-block-begin-line nil :background (face-attribute 'default :background))
 ;; (set-face-attribute 'org-block-end-line nil :background (face-attribute 'default :background))
+(set-face-attribute 'org-level-1 nil :background
+                    (doom-darken (face-attribute 'default :background) 0.15))
