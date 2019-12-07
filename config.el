@@ -128,11 +128,12 @@
 (def-package! flycheck-clj-kondo
   :after clojure-mode
   :config
-  (dolist (checkers '((clj-kondo-clj . clojure-joker)
-                    (clj-kondo-cljs . clojurescript-joker)
-                    (clj-kondo-cljc . clojure-joker)
-                    (clj-kondo-edn . edn-joker)))
-  (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
+  ;; (dolist (checkers '((clj-kondo-clj . clojure-joker)
+  ;;                   (clj-kondo-cljs . clojurescript-joker)
+  ;;                   (clj-kondo-cljc . clojure-joker)
+  ;;                   (clj-kondo-edn . edn-joker)))
+  ;; (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
+  )
 
 (after! clojure-mode
   (define-clojure-indent
@@ -144,13 +145,20 @@
     (context 2)
     (for-all 2)
     (checking 3)
-    (>defn 1)
+    (>defn :defn)
+    (>defn- :defn)
     (match 1)
     (case 1)
     (describe 1)
     (it 2)
-    (fn-traced 1)
+    (fn-traced :defn)
+    (defn-traced :defn)
     (assert-match 1))
+  (put '>defn 'clojure-doc-string-elt 2)
+  (put '>defn- 'clojure-doc-string-elt 2)
+  (put 'defn-traced 'clojure-doc-string-elt 2)
+
+
   (defun rs/ig/restart ()
     "Calls Integrant halt followed by integrant go"
     (interactive)
