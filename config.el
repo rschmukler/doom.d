@@ -148,6 +148,7 @@
     (>defn :defn)
     (>defn- :defn)
     (match 1)
+    (cond 0)
     (case 1)
     (describe 1)
     (it 2)
