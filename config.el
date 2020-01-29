@@ -219,6 +219,7 @@
   (haskell-mode . lsp)
   (python-mode . lsp)
   (rustic-mode . lsp)
+  (rust-mode . lsp)
   (reason-mode . lsp)
   :config
   (lsp-register-client
