@@ -155,6 +155,8 @@
     (fn-traced :defn)
     (defn-traced :defn)
     (assert-match 1))
+  (add-to-list 'clojure-align-binding-forms "let-flow")
+  (setq clojure-indent-style 'align-arguments)
   (put '>defn 'clojure-doc-string-elt 2)
   (put '>defn- 'clojure-doc-string-elt 2)
   (put 'defn-traced 'clojure-doc-string-elt 2)
@@ -206,7 +208,7 @@
           ("rf"       . "re-frame.core")
           ("re"       . "reagent.core")
           ("reagent"  . "reagent.core")
-          ("u.core"   . "utopia.core")
+          ("w"   . "wing.core")
           ("gen" . "clojure.spec.gen.alpha"))))
 
 (def-package! graphql-mode
