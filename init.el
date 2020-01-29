@@ -60,8 +60,10 @@
       ;rgb               ; creating color strings
        tmux              ; an API for interacting with tmux
        upload            ; map local to remote projects via ssh/ftp
-       flycheck
-       flyspell
+
+       :checkers
+       syntax
+       spell
 
        :lang
        assembly          ; assembly for fun or debugging
