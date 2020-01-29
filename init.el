@@ -157,9 +157,7 @@
 
 (setenv "PATH" (string-join exec-path ":"))
 
-
-
-
+(setq gcmh-high-cons-threshold 16777216)
 
 ;; Auto revert-mode. Look ma, no hands...
 (global-auto-revert-mode t)
