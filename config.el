@@ -1,6 +1,6 @@
 ;;; private/rschmukler/config.el -*- lexical-binding: t; -*-
 
-(def-package! org
+(use-package! org
   :config
   (setq org-agenda-files (file-expand-wildcards "~/data/org/*.org"))
   (setq org-directory (expand-file-name "~/data/org"))
@@ -54,7 +54,7 @@
 (add-hook! elm-mode
   (flycheck-mode))
 
-(def-package! rust-mode
+(use-package! rust-mode
   :mode "\\.rs$"
   :config
   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
@@ -62,9 +62,10 @@
   (flycheck-mode))
 
 (after! rustic
+  :mode "\\.rs$"
   (setq rustic-format-on-save t))
 
-(def-package! dockerfile-mode
+(use-package! dockerfile-mode
   :mode "Dockerfile$")
 
 
@@ -73,7 +74,7 @@
   (setq ranger-show-literal nil))
 
 
-(def-package! reason-mode
+(use-package! reason-mode
   :mode "\\.re$"
   :hook
   (before-save . refmt))
@@ -83,7 +84,7 @@
 ;;   :config
 ;;   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
-;; (def-package! racer
+;; (use-package! racer
 ;;   :after rust-mode
 ;;   :config
 ;;   (setq racer-rust-src-path
@@ -93,39 +94,39 @@
 ;;   (company-mode)
 ;;   (eldoc-mode))
 
-(def-package! flycheck-mix
+(use-package! flycheck-mix
   :after elixir-mode
   :config
   (add-hook 'flycheck-mode-hook #'flycheck-mix-setup))
 
-(def-package! flycheck-credo
+(use-package! flycheck-credo
   :after elixir-mode
   :config
   (setq flycheck-elixir-credo-strict t)
   (add-hook 'flycheck-mode-hook #'flycheck-credo-setup))
 
-(def-package! erlang
+(use-package! erlang
   :mode "\\.erl$"
   :config
   (erlang-mode))
 
-(def-package! racket-mode
+(use-package! racket-mode
   :mode "\\.rkt$"
   :config
   (company-mode)
   (flycheck-mode)
   (rainbow-delimiters-mode))
 
-(def-package! aggressive-indent
+(use-package! aggressive-indent
   :hook
   (clojure-mode . aggressive-indent-mode)
   (hy-mode . aggressive-indent-mode)
   (lisp-mode . aggressive-indent-mode))
 
-(def-package! helm-cider
-  :hook (cider-mode . helm-cider-mode))
+;; (use-package! helm-cider
+;; :hook (cider-mode . helm-cider-mode))
 
-(def-package! flycheck-clj-kondo
+(use-package! flycheck-clj-kondo
   :after clojure-mode
   :config
   ;; (dolist (checkers '((clj-kondo-clj . clojure-joker)
@@ -211,10 +212,10 @@
           ("w"   . "wing.core")
           ("gen" . "clojure.spec.gen.alpha"))))
 
-(def-package! graphql-mode
+(use-package! graphql-mode
   :mode "\\.gql$")
 
-(def-package! lsp-mode
+(use-package! lsp-mode
   :hook
   (haskell-mode . lsp)
   (python-mode . lsp)
@@ -231,19 +232,19 @@
   :commands
   lsp)
 
-(def-package! lsp-ui
+(use-package! lsp-ui
   :commands
   lsp-ui-mode)
 
-(def-package! company-lsp
+(use-package! company-lsp
   :commands company-lsp)
 
-(def-package! lsp-haskell
+(use-package! lsp-haskell
   :after haskell-mode
   :config
   (setq lsp-haskell-process-path-hie "hie-wrapper"))
 
-(def-package! yapfify
+(use-package! yapfify
   :hook
   (python-mode . yapf-mode)
   (before-save . yapify-buffer))
@@ -255,7 +256,7 @@
    '((ipython . t))))
 
 
-(def-package! haskell-mode
+(use-package! haskell-mode
   :mode "\\.hs$"
   :config
   (rainbow-delimiters-mode)
@@ -268,13 +269,13 @@
          ;; (string-equal "::" (car elem))))
          haskell-font-lock-symbols-alist)))
 
-;; (def-package! flycheck-haskell
+;; (use-package! flycheck-haskell
 ;;   :hook (haskell-mode . flycheck-haskell-setup))
 
-(def-package! dhall-mode
+(use-package! dhall-mode
   :mode "\\.dhall$")
 
-(def-package! lispyville
+(use-package! lispyville
   :hook ((emacs-lisp-mode clojure-mode hy-mode json-mode) . lispyville-mode)
   :config
   (lispyville-set-key-theme
@@ -291,7 +292,7 @@
      additional-insert
      escape)))
 
-(def-package! alchemist
+(use-package! alchemist
   :after elixir-mode
   :config
   (defun rm/alchemist-project-toggle-file-and-tests ()
