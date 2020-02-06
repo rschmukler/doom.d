@@ -279,8 +279,8 @@
  (:after clojure-mode
    (:map clojure-mode-map
      :leader
-     :n "\\" #'helm-cider-apropos
-     :n "DEL" #'helm-cider-apropos-ns
+     :n "\\" #'ivy-cider-apropos
+     :n "DEL" #'ivy-cider-browse-ns
      (:desc "reload" :prefix "r"
        :desc "Refresh user libraries" :n "l" #'rs/user/sync-libs
        :desc "Restart Integrant" :n "r" #'rs/ig/restart

@@ -29,3 +29,5 @@
 (package! flycheck-clj-kondo)
 (package! helm-cider)
 (package! dhall-mode)
+(package! ivy-cider
+  :recipe (:host github :repo "rschmukler/ivy-cider"))

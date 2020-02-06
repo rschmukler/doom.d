@@ -77,7 +77,9 @@
 (use-package! reason-mode
   :mode "\\.re$"
   :hook
-  (before-save . refmt))
+  (before-save . (lambda ()
+                   (when (equal major-mode 'reason-mode)
+                     (refmt)))))
 
 ;; (add-hook! flycheck-rust
 ;;   :after rust-mode
@@ -123,8 +125,8 @@
   (hy-mode . aggressive-indent-mode)
   (lisp-mode . aggressive-indent-mode))
 
-;; (use-package! helm-cider
-;; :hook (cider-mode . helm-cider-mode))
+(use-package! ivy-cider
+  :after cider-mode)
 
 (use-package! flycheck-clj-kondo
   :after clojure-mode
@@ -247,7 +249,9 @@
 (use-package! yapfify
   :hook
   (python-mode . yapf-mode)
-  (before-save . yapify-buffer))
+  (before-save . (lambda ()
+                   (when (eq major-mode 'python-mode)
+                     (yapify-buffer)))))
 
 (after! org-babel
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
@@ -321,4 +325,3 @@
 (load! "+theming")
 (load! "+bindings")
 (load! "+commands")
-
