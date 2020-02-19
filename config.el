@@ -160,8 +160,10 @@
     (assert-match 1))
   (add-to-list 'clojure-align-binding-forms "let-flow")
   (setq clojure-indent-style 'align-arguments)
+  (setq cider-default-cljs-repl 'shadow)
   (put '>defn 'clojure-doc-string-elt 2)
   (put '>defn- 'clojure-doc-string-elt 2)
+  (put 'defsys 'clojure-doc-string-elt 2)
   (put 'defn-traced 'clojure-doc-string-elt 2)
 
 
@@ -199,7 +201,7 @@
           ("async" . "clojure.core.async")
           ("component" . "com.stuartsierra.component")
           ("http" . "clj-http.client")
-          ("url" . "cemerick.url" )
+          ("url" . "cemerick.url")
           ("sql" . "honeysql.core")
           ("csv" . "clojure.data.csv")
           ("json" . "cheshire.core")
@@ -208,10 +210,11 @@
           ("ig" . "integrant.core")
           ("cp" . "com.climate.claypoole")
           ("re-frame" . "re-frame.core")
-          ("rf"       . "re-frame.core")
-          ("re"       . "reagent.core")
-          ("reagent"  . "reagent.core")
-          ("w"   . "wing.core")
+          ("rf" . "re-frame.core")
+          ("rf.db" . "re-frame.db")
+          ("re" . "reagent.core")
+          ("reagent" . "reagent.core")
+          ("w" . "wing.core")
           ("gen" . "clojure.spec.gen.alpha"))))
 
 (use-package! graphql-mode
