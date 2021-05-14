@@ -2,16 +2,16 @@
 
 (use-package! org
   :config
-  (setq org-agenda-files (file-expand-wildcards "~/data/org/*.org"))
-  (setq org-directory (expand-file-name "~/data/org"))
+  (setq org-agenda-files (file-expand-wildcards "~/docs/org/*.org"))
+  (setq org-directory (expand-file-name "~/docs/org"))
   (setq org-cycle-separator-lines 1)
-  (defvar +org-dir (expand-file-name "~/data/org"))
+  (defvar +org-dir (expand-file-name "~/docs/org"))
   (setq org-capture-templates
-        '(("c" "Code Task" entry (file+headline "~/data/org/main.org" "Coding Tasks")
+        '(("c" "Code Task" entry (file+headline "~/docs/org/main.org" "Coding Tasks")
            "* TODO %?\n  Entered on: %U - %a\n")
-          ("t" "Task" entry (file+headline "~/data/org/main.org" "Tasks")
+          ("t" "Task" entry (file+headline "~/docs/org/main.org" "Tasks")
            "* TODO %?\n  Entered on: %U")
-          ("n" "Note" entry (file+datetree "~/data/org/main.org")
+          ("n" "Note" entry (file+datetree "~/docs/org/main.org")
            "* %?\n\n"))))
 
 (after! neotree
@@ -21,6 +21,21 @@
 
 (after! company
   (setq company-idle-delay 0))
+
+(after! magit-forge
+  (magit-add-section-hook 'magit-status-sections-hook
+                          'forge-insert-authored-pullreqs
+                          'forge-insert-pullreqs nil)
+  (magit-add-section-hook 'magit-status-sections-hook
+                          'forge-insert-requested-reviews
+                          'forge-insert-pullreqs nil)
+
+  (transient-append-suffix 'forge-dispatch '(0)
+    ["Edit"
+     ("e a" "assignees" forge-edit-topic-assignees)
+     ("e l" "labels" forge-edit-topic-labels)
+     ("e r" "review requests" forge-edit-topic-review-requests)])
+  )
 
 (after! doom-themes
   (setq doom-neotree-file-icons t))
@@ -81,6 +96,11 @@
                    (when (equal major-mode 'reason-mode)
                      (refmt)))))
 
+
+(after! magit
+  :config
+  (setq magit-prefer-remote-upstream t))
+
 ;; (add-hook! flycheck-rust
 ;;   :after rust-mode
 ;;   :config
@@ -121,7 +141,7 @@
 
 (use-package! aggressive-indent
   :hook
-  (clojure-mode . aggressive-indent-mode)
+  ;; (clojure-mode . aggressive-indent-mode)
   (hy-mode . aggressive-indent-mode)
   (lisp-mode . aggressive-indent-mode))
 
@@ -155,15 +175,21 @@
     (case 1)
     (describe 1)
     (it 2)
+    (it 2)
     (fn-traced :defn)
     (defn-traced :defn)
-    (assert-match 1))
+    (assert-match 1)
+    (assert-exception 1)
+    (at-media 1)
+    (fiber-loop 1))
   (add-to-list 'clojure-align-binding-forms "let-flow")
   (setq clojure-indent-style 'align-arguments)
   (setq cider-default-cljs-repl 'shadow)
   (put '>defn 'clojure-doc-string-elt 2)
   (put '>defn- 'clojure-doc-string-elt 2)
   (put 'defsys 'clojure-doc-string-elt 2)
+  (put 'defhandler 'clojure-doc-string-elt 2)
+  (put 'defstream 'clojure-doc-string-elt 2)
   (put 'defn-traced 'clojure-doc-string-elt 2)
 
 
@@ -172,16 +198,25 @@
     (interactive)
     (cider-interactive-eval "(do (integrant.repl/halt) (integrant.repl/go))"))
 
-  (defun rs/ig/reset ()
+  (defun rs/systemic/restart ()
+    "Calls Integrant halt followed by integrant go"
+    (interactive)
+    (cider-interactive-eval "(systemic.core/restart!)"))
+
+  (defun rs/systemic/start ()
+    "Calls Integrant halt followed by integrant go"
+    (interactive)
+    (cider-interactive-eval "(systemic.core/start!)"))
+
+  (defun rs/systemic/stop ()
+    "Calls Integrant halt followed by integrant go"
+    (interactive)
+    (cider-interactive-eval "(systemic.core/stop!)"))
+
+  (defun rs/wing/sync-libs ()
     "Calls Integrant reset"
     (interactive)
-    (cider-interactive-eval "(integrant.repl/reset)"))
-
-  (defun rs/user/sync-libs ()
-    "Calls Integrant reset"
-    (interactive)
-    (cider-interactive-eval "(user/sync-libs)"))
-
+    (cider-interactive-eval "(wing.repl/sync-libs!)"))
 
   (setq clojure-align-forms-automatically t)
   (setq cider-cljs-lein-repl
@@ -200,12 +235,13 @@
           ("zip" . "clojure.zip")
           ("async" . "clojure.core.async")
           ("component" . "com.stuartsierra.component")
-          ("http" . "clj-http.client")
+          ("http" . "hato.client")
           ("url" . "cemerick.url")
           ("sql" . "honeysql.core")
           ("csv" . "clojure.data.csv")
-          ("json" . "cheshire.core")
-          ("s" . "clojure.spec.alpha")
+          ("json" . "jsonista.core")
+          ("s" . "manifold.stream")
+          ("d" . "manifold.deferred")
           ("fs" . "me.raynes.fs")
           ("ig" . "integrant.core")
           ("cp" . "com.climate.claypoole")
@@ -215,15 +251,111 @@
           ("re" . "reagent.core")
           ("reagent" . "reagent.core")
           ("w" . "wing.core")
-          ("gen" . "clojure.spec.gen.alpha"))))
+          ("gen" . "clojure.spec.gen.alpha")
+          ("m" . "malli.core")
+          ("mg" . "malli.generator")
+          ("mt" . "malli.transform")
+          ("t" . "tick.alpha.api"))))
+
+(add-hook! clojure-mode
+  (rainbow-delimiters-mode))
+
+;; (after! company-box
+;;   (add-function
+;;    :after
+;;    (symbol-function 'company-box-doc--show)
+;;    (lambda (_ frame)
+;;      (when (frame-visible-p (frame-parameter frame 'company-box-doc-frame))
+;;        (when (not (frame-visible-p (company-box--get-frame)))
+;;          (make-frame-visible (company-box--get-frame)))))))
+
+(after! cider
+  (add-hook 'company-completion-started-hook 'ans/set-company-maps)
+  (add-hook 'company-completion-finished-hook 'ans/unset-company-maps)
+  (add-hook 'company-completion-cancelled-hook 'ans/unset-company-maps)
+
+
+  ;; Overwrite this cider function for custom focus modes
+  (defun cider--anchored-search-suppressed-forms (limit)
+  "Matcher for finding unused reader conditional expressions.
+An unused reader conditional expression is an expression for a platform
+that does not match the CIDER connection for the buffer.  Search is done
+with the given LIMIT."
+  (let ((repl-types (cond
+                     ((eq major-mode 'clojure-mode)
+                      '("clj"))
+                     ((eq major-mode 'clojurescript-mode)
+                      '("cljs"))
+                     ('t
+                      (seq-uniq (seq-map
+                                 (lambda (repl)
+                                   (symbol-name (cider-repl-type repl)))
+                                 (cider-repls))))))
+        (result 'retry))
+    (while (and (eq result 'retry) (<= (point) limit))
+      (condition-case condition
+          (setq result
+                (cider--anchored-search-suppressed-forms-internal
+                 repl-types limit))
+        (invalid-read-syntax
+         (setq result 'retry))
+        (wrong-type-argument
+         (setq result 'retry))
+        (scan-error
+         (setq result 'retry))
+        (end-of-file
+         (setq result nil))
+        (error
+         (setq result nil)
+         (message
+          "Error during fontification while searching for forms: %S"
+          condition))))
+    (if (eq result 'retry) (setq result nil))
+    result))
+
+
+  (defun ans/unset-company-maps (&rest unused)
+    "Set default mappings (outside of company).
+    Arguments (UNUSED) are ignored."
+    (general-def
+      :states 'insert
+      :keymaps 'override
+      "C-j" nil
+      "C-k" nil
+      "C-n" nil
+      "C-p" nil
+      "RET" nil
+      "TAB" nil
+      "C-h" nil))
+
+
+  (defun ans/set-company-maps (&rest unused)
+    "Set maps for when you're inside company completion.
+    Arguments (UNUSED) are ignored."
+    (general-def
+      :states 'insert
+      :keymaps 'override
+      "C-j" #'company-select-next
+      "C-k" #'company-select-previous
+      "C-n" #'company-select-next
+      "C-p" #'company-select-previous
+      "RET" #'company-complete-selection
+      "TAB" #'company-complete-common-or-cylce
+      "C-h" #'company-show-doc-buffer)))
+
+(after! clj-refactor
+  (setq cljr-clojure-test-declaration "[clojure.test :refer [deftest testing is]]"))
 
 (use-package! graphql-mode
   :mode "\\.gql$")
 
+(use-package! fennel-mode
+  :mode "\\.fnl$")
+
 (use-package! lsp-mode
   :hook
   (haskell-mode . lsp)
-  (python-mode . lsp)
+  ;; (python-mode . lsp)
   (rustic-mode . lsp)
   (rust-mode . lsp)
   (reason-mode . lsp)
@@ -249,18 +381,15 @@
   :config
   (setq lsp-haskell-process-path-hie "hie-wrapper"))
 
-(use-package! yapfify
-  :hook
-  (python-mode . yapf-mode)
-  (before-save . (lambda ()
-                   (when (eq major-mode 'python-mode)
-                     (yapify-buffer)))))
+;; (use-package! yapfify
+;;   :hook
+;;   (python-mode . yapf-mode)
+;;   (before-save . (lambda ()
+;;                    (when (eq major-mode 'python-mode)
+;;                     (yapify-buffer)))))
 
 (after! org-babel
-  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((ipython . t))))
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append))
 
 
 (use-package! haskell-mode
@@ -268,7 +397,7 @@
   :config
   (rainbow-delimiters-mode)
   ;; (setq haskell-font-lock-symbols t)
-  (add-to-list ("<>" . "⊕"))
+  ;; (add-to-list ("<>" . "⊕"))
   (setq haskell-font-lock-symbols-alist
         (-reject
          (lambda (elem)
@@ -298,6 +427,12 @@
      additional-movement
      additional-insert
      escape)))
+
+(use-package! sqlformat
+  :hook
+  (sql-mode . sqlformat-on-save-mode)
+  :config
+  (setq sqlformat-command 'pgformatter))
 
 (use-package! alchemist
   :after elixir-mode

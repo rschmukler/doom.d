@@ -2,6 +2,7 @@
 
 
 (when (eq system-type 'gnu/linux)
+  (setq x-hyper-keysym 'meta)
   (setq x-super-keysym 'meta))
 
 (when (eq system-type 'darwin)
@@ -81,17 +82,18 @@
    :desc "Previous Error"         :n  "["   #'flycheck-previous-error
    :desc "Show flycheck errors"   :n  "!"   #'flycheck-list-errors
 
-   :desc "Find file content"      :n  "f"   #'counsel-projectile-ag
+   :desc "Find file content"      :n  "f"   #'counsel-projectile-rg
    :desc "Find project"           :n  "p"   #'projectile-switch-project
-
-   :desc "Eval"                   :n  "e"   #'+eval/buffer
-   :v  "e"   #'+eval/region
 
    :desc "Switch to last buffer"  :n  "SPC" #'wc/switch-to-mru-buffer
    :desc "Save buffer"            :n  "RET" #'save-buffer
 
    :desc "Delete the window"      :n  "q"   #'delete-window
    :desc "Ivy open buffers"       :n  "b"   #'ivy-switch-buffer
+
+   :desc "Swiper Search"          :n  "/"   #'swiper
+   (:desc "edit" :prefix "e"
+    :desc "Doom.d" :n "d" #'doom/open-private-config)
 
    :desc "Toggle between file and tests"  :n "t" #'projectile-toggle-between-implementation-and-test
 
@@ -181,6 +183,14 @@
    :map magit-blame-mode-map
    :n "q" #'magit-blame-quit)
 
+ (:after git-timemachine
+  :map git-timemachine-mode-map
+  :n "C-j" #'git-timemachine-show-next-revision
+  :n "C-k" #'git-timemachine-show-previous-revision
+  :n "C-c" #'git-timemachine-show-commit
+  :n "C-b" #'git-timemachine-blame
+  :n "C-y" #'git-timemachine-kill-revision)
+
  ;; ivy
  (:after ivy
    :map ivy-minibuffer-map
@@ -258,7 +268,6 @@
      :desc "Find documentation" :n "d" #'+lookup/documentation
      :desc "Find definition" :n "l" #'+lookup/definition
      :localleader
-     :n "f" (λ! (message (or (lsp-workspace-root-debug) "No root!")))
      :desc "Peek implementations" :n "i" #'lsp-ui-peek-find-implementation
      :desc "Apply LSP Code Action" :n "a" #'lsp-ui-sideline-apply-code-actions))
 
@@ -282,9 +291,12 @@
      :n "\\" #'ivy-cider-apropos
      :n "DEL" #'ivy-cider-browse-ns
      (:desc "reload" :prefix "r"
-       :desc "Refresh user libraries" :n "l" #'rs/user/sync-libs
-       :desc "Restart Integrant" :n "r" #'rs/ig/restart
-       :desc "Reload Integrant" :n "R" #'rs/ig/reset)
+       :desc "Refresh user libraries" :n "l" #'rs/wing/sync-libs
+       :desc "Restart systemic" :n "r" #'rs/systemic/restart
+       :desc "Start systemic" :n "s" #'rs/systemic/start
+       :desc "Stop systemic" :n "S" #'rs/systemic/stop
+       :desc "Cycle clojure buffer type" :n "t" #'rs/cider-cycle-buffer-type
+       :desc "Cycle between cider repl buffers" :n "T" (λ!  (rs/cider-cycle-repl 't)))
      :localleader
      :n "'" #'cider-jack-in
      :n "\"" #'cider-jack-in-clojurescript))
@@ -296,7 +308,7 @@
      :desc "Jump to definition at point" :n "l" #'cider-find-var
      :localleader
      :n "b" #'cider-eval-buffer
-     :n "B" #'cider-switch-to-repl-buffer
+     :n "B" (λ!  (rs/cider-cycle-repl 't))
      :n "n" #'cider-repl-set-ns
      :n "j" #'cider-find-var
      :n "s" #'cider-browse-spec
@@ -308,7 +320,7 @@
        :desc "Browse Spec" :n "s" #'cider-browse-spec
        :desc "Load ClojureDoc" :n "d" #'cider-clojuredocs)
      :n "h" #'cider-doc
-     :n "c" #'cider-repl-clear-buffer
+     :n "c" #'rs/cider-clear-all-buffers
      :n "i" #'cider-inspect-last-result
      :n "p" #'cider-eval-sexp-at-point
      :n "f" #'cider-eval-defun-at-point
@@ -316,7 +328,10 @@
      :n "T" #'cider-test-run-test)
    (:after cider-browse-ns-mode
      (:map cider-browse-ns-mode-map
-       :n "RET"       #'cider-browse-ns-operate-at-point)))
+      :n "RET"       #'cider-browse-ns-operate-at-point))
+   (:map cider-repl-mode-map
+    :localleader
+    :n "B" (λ!  (rs/cider-cycle-repl 't))))
 
  ;; org-mode
  (:after org-mode
@@ -397,12 +412,3 @@
 
       (:after view
         (:map view-mode-map "<escape>" #'View-quit-all)))
-
-(defun lsp-workspace-root-debug (&optional path)
-  "Find the workspace root for the current file or PATH."
-  (when-let (file-name (or path (buffer-file-name)))
-    (do (message "Yay!")
-        (->> (lsp-session)
-             (lsp-session-folders)
-             ;; (--first (f-ancestor-of? it (f-canonical file-name)))
-             ))))

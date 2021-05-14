@@ -47,16 +47,19 @@
 
        :tools
        eval              ; run code, run (also, repls)
-       ein               ; tame Jupyter notebooks with emacs
+      ;ein               ; tame Jupyter notebooks with emacs
        gist              ; interacting with github gists
        (lookup           ; helps you navigate your code and documentation
         +devdocs         ; ...on devdocs.io online
         +docsets)        ; ...or in Dash docsets locally
-       macos             ; MacOS-specific commands
+       (:if IS-MAC
+        macos)           ; MacOS-specific commands
        make              ; run make tasks from Emacs
-       magit             ;
+       (magit +forge)    ;
        pass              ; password manager for nerds
        pdf               ; pdf enhancements
+       direnv            ; Use direnv
+       lsp
       ;rgb               ; creating color strings
        tmux              ; an API for interacting with tmux
        upload            ; map local to remote projects via ssh/ftp
@@ -76,7 +79,7 @@
        elixir            ; erlang done right
        elm               ; care for a cup of TEA?
        emacs-lisp        ; drown in parentheses
-       ess               ; emacs speaks statistics
+      ;ess               ; emacs speaks statistics
        go                ; the hipster dialect
       ;haskell           ; a language that's lazier than I am
        hy                ; readability of scheme w/ speed of python
@@ -95,12 +98,13 @@
         +capture         ; org-capture in and outside of Emacs
         +export          ; Exporting org to whatever you want
         +present         ; Emacs for presentations
-        +publish)        ; Emacs+Org as a static site generator
-       perl              ; write code no one else can comprehend
+        +publish         ; Emacs+Org as a static site generator
+        +roam)           ; Org Roam!
+       raku              ; perl
        php               ; perl's insecure younger brother
        plantuml          ; diagrams for confusing people more
        purescript        ; javascript, but functional
-       (python +pyenv)   ; beautiful is better than ugly
+       (python +lsp +pyright)   ; beautiful is better than ugly
        rest              ; Emacs as a REST client
        ruby              ; 1.step do {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
        rust              ; Fe2O3.unwrap().unwrap().unwrap().unwrap()

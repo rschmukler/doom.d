@@ -1,4 +1,6 @@
 ;;; private/rschmukler/functions.el -*- lexical-binding: t; -*-
+(require 'seq)
+(require 'cl)
 
 (defun rschmukler/neotree-project-root-dir-or-current-dir ()
   "Open NeoTree using the project root, using projectile, or the
@@ -204,3 +206,44 @@ information retrieved from files created by the keychain script."
           (and gpg
                (string-match "GPG_AGENT_INFO[=\s]\\([^\s;\n]*\\)" gpg)
                (setenv       "GPG_AGENT_INFO" (match-string 1 gpg))))))
+
+(defun rs/cider-cycle-buffer-type ()
+  "Cycles between clojure, clojurescript, and clojurec repl types"
+  (interactive)
+  (if (string= "cljc" (file-name-extension (buffer-file-name)))
+      (let ((repl-open? (get-buffer-window (cider-current-repl-buffer)))
+            (window (selected-window)))
+        (setq clojure-verify-major-mode nil)
+        (cond
+         ((eq 'clojurec-mode major-mode) (clojure-mode))
+         ((eq 'clojure-mode major-mode) (clojurescript-mode))
+         ((eq 'clojurescript-mode major-mode) (clojurec-mode)))
+        (setq-local flycheck-clj-kondo-lang "cljc")
+        (when (and repl-open? (not (eq 'clojurec-mode major-mode)))
+          (cider-switch-to-repl-buffer)
+          (select-window window)))
+    (message (concat "Cycle repl type called from non .cljc file" (buffer-file-name)))))
+
+(defun rs/cider-cycle-repl (&optional force-open?)
+  "Cycles between visible cider repls. No op if we aren't open, unless force-open? is truthy."
+  (interactive)
+  (let ((open-repl-buffer (car (seq-filter 'get-buffer-window (cider-repls))))
+        (window (selected-window)))
+    (cond
+     (open-repl-buffer
+      (dolist (buff (cider-repls))
+        (when (not (eq open-repl-buffer buff))
+          (cider--switch-to-repl-buffer buff)
+          (select-window window))))
+     (force-open? (cider-switch-to-repl-buffer)))))
+
+(defun rs/cider-clear-all-buffers ()
+  "Clear all cider buffers"
+  (interactive)
+  (let ((inhibit-read-only 't))
+    (dolist (repl (cider-repls))
+      (with-current-buffer repl
+        (cider-repl--clear-region (point-min) cider-repl-prompt-start-mark)
+        (cider-repl--clear-region cider-repl-output-start cider-repl-output-end)
+        (when (< (point) cider-repl-input-start-mark)
+          (goto-char cider-repl-input-start-mark))))))
