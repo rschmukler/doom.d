@@ -73,7 +73,7 @@
  ;; Leader Configs
  (:leader
    :desc "M-x"                    :nv ":"   #'execute-extended-command
-   :desc "Neotree toggle"         :n  "n"   #'rschmukler/neotree-project-root-dir-or-current-dir
+   :desc "Neotree toggle"         :n  "n"   #'neotree-projectile-action
 
    :desc "Horizonal Split"        :n  "s"   #'split-window-below
    :desc "Vertical Split"         :n  "v"   #'split-window-right
@@ -132,21 +132,11 @@
      :desc "Next hunk"         :nv "]" #'git-gutter:next-hunk
      :desc "Previous hunk"     :nv "[" #'git-gutter:previous-hunk)
 
-   (:desc "open" :prefix "o"
+   (:desc "org" :prefix "o"
      :desc "Org Agenda"          :n  "a" #'org-agenda
-     :desc "Default browser"     :n  "b" #'browse-url-of-file
-     :desc "Debugger"            :n  "d" #'+debug/open
-     :desc "REPL"                :n  "r" #'+eval/repl
-     :v  "r" #'+eval:repl
-     :desc "Neotree"             :n  "n" #'+neotree/toggle
-     :desc "Terminal"            :n  "t" #'+term/open-popup
-     :desc "Terminal in project" :n  "T" #'+term/open-popup-in-project
-     :desc "Org Capture"         :n  "o" #'org-capture)
-
-   (:desc "orgmode" :prefix "O"
-     :desc "Capture item"        :n  "O" #'org-capture
-     :desc "Show all todos"      :n  "t" #'org-todo-list
-     )
+     :desc "Org Capture"         :n  "o" #'org-roam-capture
+     :desc "Find node"           :n  "f" #'org-roam-node-find
+     :desc "Show todos"          :n  "t" #'org-todo-list)
 
    (:desc "insert" :prefix "i"
      :desc "From kill-ring" :nv "p" #'counsel-yank-pop

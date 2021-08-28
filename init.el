@@ -1,4 +1,8 @@
 ;;; private/rschmukler/init.el -*- lexical-binding: t; -*-
+(when (and (fboundp 'native-comp-available-p)
+           (native-comp-available-p))
+  (setq comp-deferred-compilation 't))
+
 (doom! :feature
       ;debugger          ; FIXME stepping through code, to help you add bugs
 
@@ -99,7 +103,7 @@
         +export          ; Exporting org to whatever you want
         +present         ; Emacs for presentations
         +publish         ; Emacs+Org as a static site generator
-        +roam)           ; Org Roam!
+        +roam2)          ; Org Roam!
        raku              ; perl
        php               ; perl's insecure younger brother
        plantuml          ; diagrams for confusing people more

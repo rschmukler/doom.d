@@ -22,6 +22,12 @@
 (after! company
   (setq company-idle-delay 0))
 
+(use-package! magit-todos
+  :after magit-mode
+  :config
+  (magit-add-section-hook 'magit-status-sections-hook 'magit-todos--insert-todos nil)
+  (setq magit-todos-branch-list-merge-base-ref "origin/main"))
+
 (after! magit-forge
   (magit-add-section-hook 'magit-status-sections-hook
                           'forge-insert-authored-pullreqs
@@ -30,7 +36,10 @@
                           'forge-insert-requested-reviews
                           'forge-insert-pullreqs nil)
 
-  (transient-append-suffix 'forge-dispatch '(0)
+  (transient-append-suffix 'forge-dispatch '(0 -1)
+    ["Misc"
+     ("y" "yank" forge-copy-url-at-point-as-kill)])
+  (transient-append-suffix 'forge-dispatch '(0 -1)
     ["Edit"
      ("e a" "assignees" forge-edit-topic-assignees)
      ("e l" "labels" forge-edit-topic-labels)
@@ -101,6 +110,7 @@
   :config
   (setq magit-prefer-remote-upstream t))
 
+
 ;; (add-hook! flycheck-rust
 ;;   :after rust-mode
 ;;   :config
@@ -157,6 +167,12 @@
   ;;                   (clj-kondo-edn . edn-joker)))
   ;; (flycheck-add-next-checker (car checkers) (cons 'error (cdr checkers)))))
   )
+
+(after! typescript-mode
+  (setq typescript-indent-level 2))
+
+(after! typescript-tsx-mode
+  (setq typescript-indent-level 2))
 
 (after! clojure-mode
   (define-clojure-indent
