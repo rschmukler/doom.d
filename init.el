@@ -158,12 +158,15 @@
             "/bin/"
             "/usr/sbin/"
             "/sbin/"
+            (concat (getenv "HOME") "/Library/Python/3.7/bin")
             (concat (getenv "HOME") "/.opam/4.02.3/bin")
             (concat (getenv "HOME") "/.nix-profile/bin")
             (concat (getenv "HOME") "/.cargo/bin")
             (concat (getenv "HOME") "/.local/bin")))
 
 (setenv "PATH" (string-join exec-path ":"))
+(when (eq system-type 'darwin)
+  (setenv "LD_LIBRARY_PATH" "/usr/local/lib:/usr/lib"))
 
 (setq gcmh-high-cons-threshold 16777216)
 
