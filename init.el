@@ -58,8 +58,6 @@
        (lookup           ; helps you navigate your code and documentation
         +devdocs         ; ...on devdocs.io online
         +docsets)        ; ...or in Dash docsets locally
-       (:if IS-MAC
-        macos)           ; MacOS-specific commands
        make              ; run make tasks from Emacs
        (magit +forge)    ;
        pass              ; password manager for nerds
@@ -73,6 +71,10 @@
        :checkers
        syntax
        spell
+
+       :os
+       (:if IS-MAC
+        macos)           ; MacOS-specific commands
 
        :lang
        assembly          ; assembly for fun or debugging
