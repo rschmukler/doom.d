@@ -1,9 +1,7 @@
 ;;; private/rschmukler/config.el -*- lexical-binding: t; -*-
 
-(use-package! org
-  :config
+(after! org
   (setq org-agenda-files (file-expand-wildcards "~/docs/org/*.org"))
-  (setq org-directory (expand-file-name "~/docs/org"))
   (setq org-cycle-separator-lines 1)
   (defvar +org-dir (expand-file-name "~/docs/org"))
   (setq org-capture-templates
@@ -13,6 +11,9 @@
            "* TODO %?\n  Entered on: %U")
           ("n" "Note" entry (file+datetree "~/docs/org/main.org")
            "* %?\n\n"))))
+
+(after! org-roam
+  (setq org-roam-directory (expand-file-name (concat org-directory "/" "roam"))))
 
 (after! neotree
   (setq doom-themes-neotree-file-icons 'icons)

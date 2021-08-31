@@ -13,7 +13,6 @@
 (package! racer)
 (package! flycheck-rust)
 (package! intero)
-(package! org)
 ;; (package! lsp-mode)
 ;; (package! lsp-ui)
 ;; (package! lsp-haskell)

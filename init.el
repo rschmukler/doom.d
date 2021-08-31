@@ -3,6 +3,8 @@
            (native-comp-available-p))
   (setq comp-deferred-compilation 't))
 
+(setq org-directory (expand-file-name "~/docs/org"))
+
 (doom! :feature
       ;debugger          ; FIXME stepping through code, to help you add bugs
 
