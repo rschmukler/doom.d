@@ -480,3 +480,4 @@ with the given LIMIT."
 (load! "+theming")
 (load! "+bindings")
 (load! "+commands")
+(load! "+org")

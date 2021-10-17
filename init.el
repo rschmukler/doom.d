@@ -112,7 +112,7 @@
        php               ; perl's insecure younger brother
        plantuml          ; diagrams for confusing people more
        purescript        ; javascript, but functional
-       (python +lsp +pyright)   ; beautiful is better than ugly
+       (python +pyenv +lsp +pyright)   ; beautiful is better than ugly
        rest              ; Emacs as a REST client
        ruby              ; 1.step do {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
        rust              ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
@@ -120,6 +120,7 @@
        sh                ; she sells (ba|z)sh shells on the C xor
        swift             ; who asked for emoji variables?
        web               ; the tubes
+       yaml
 
        :term
        term              ; terminals in Emacs
@@ -155,22 +156,6 @@
 (setq tab-width 2)
 (setq-default indent-tabs-mode nil)
 
-(setq exec-path
-      (list (concat (getenv "HOME") "/.pyenv/shims")
-            "/usr/local/bin/"
-            "/usr/bin/"
-            "/bin/"
-            "/usr/sbin/"
-            "/sbin/"
-            (concat (getenv "HOME") "/Library/Python/3.7/bin")
-            (concat (getenv "HOME") "/.opam/4.02.3/bin")
-            (concat (getenv "HOME") "/.nix-profile/bin")
-            (concat (getenv "HOME") "/.cargo/bin")
-            (concat (getenv "HOME") "/.local/bin")))
-
-(setenv "PATH" (string-join exec-path ":"))
-(when (eq system-type 'darwin)
-  (setenv "LD_LIBRARY_PATH" "/usr/local/lib:/usr/lib"))
 
 (setq gcmh-high-cons-threshold 16777216)
 
