@@ -31,3 +31,5 @@
   :recipe (:host github :repo "rschmukler/ivy-cider"))
 (package! fennel-mode)
 (package! sqlformat)
+(package! code-review)
+(package! git-link)

@@ -1,5 +1,7 @@
 ;;; private/rschmukler/config.el -*- lexical-binding: t; -*-
 
+(setq epa-pinentry-mode 'loopback)
+
 (after! org
   (setq org-agenda-files (file-expand-wildcards "~/docs/org/*.org"))
   (setq org-cycle-separator-lines 1)
@@ -46,6 +48,11 @@
      ("e l" "labels" forge-edit-topic-labels)
      ("e r" "review requests" forge-edit-topic-review-requests)])
   )
+
+(use-package! code-review)
+(use-package! git-link
+  :config
+  (setq git-link-use-commit t))
 
 (after! doom-themes
   (setq doom-neotree-file-icons t))

@@ -129,6 +129,7 @@
      :desc "Git time machine"  :n  "t" #'git-timemachine-toggle
      :desc "Git revert hunk"   :n  "r" #'git-gutter:revert-hunk
      :desc "List gists"        :n  "g" #'+gist:list
+     :desc "Link"              :v  "l" #'git-link
      :desc "Next hunk"         :nv "]" #'git-gutter:next-hunk
      :desc "Previous hunk"     :nv "[" #'git-gutter:previous-hunk)
 
@@ -172,6 +173,13 @@
  (:after magit
    :map magit-blame-mode-map
    :n "q" #'magit-blame-quit)
+
+ (:after code-review
+  :map forge-pullreq-list-mode-map
+  (:desc "Start a code review" :n "r" #'code-review-forge-pr-at-point)
+  (:desc "Start a code review" :n "RET" #'code-review-forge-pr-at-point)
+  :map code-review-mode-map
+  (:desc "Open code review transit panel" :n "r" #'code-review-transient-api))
 
  (:after git-timemachine
   :map git-timemachine-mode-map
