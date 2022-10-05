@@ -291,8 +291,11 @@
      (:desc "reload" :prefix "r"
        :desc "Refresh user libraries" :n "l" #'rs/wing/sync-libs
        :desc "Restart systemic" :n "r" #'rs/systemic/restart
+       :desc "Restart system at point" :n "R" #'rs/systemic/restart-last-sexp
        :desc "Start systemic" :n "s" #'rs/systemic/start
        :desc "Stop systemic" :n "S" #'rs/systemic/stop
+       :desc "Start system at point" :n "d" #'rs/systemic/start-last-sexp
+       :desc "Stop system at point" :n "D" #'rs/systemic/stop-last-sexp
        :desc "Cycle clojure buffer type" :n "t" #'rs/cider-cycle-buffer-type
        :desc "Cycle between cider repl buffers" :n "T" (λ!  (rs/cider-cycle-repl 't)))
      :localleader
@@ -301,9 +304,12 @@
  ;; cider-mode
  (:after cider-mode
    (:map cider-mode-map
+     :n "C-x C-y" #'cider-eval-last-sexp-and-yank
      :leader
      :desc "Lookup documentation at point" :n "d" #'cider-doc
      :desc "Jump to definition at point" :n "l" #'cider-find-var
+     :desc "Show cider errors" :n "@"
+     (λ! (with-current-buffer cider-error-buffer (+popup/buffer)))
      :localleader
      :n "b" #'cider-eval-buffer
      :n "B" (λ!  (rs/cider-cycle-repl 't))
@@ -319,6 +325,7 @@
        :desc "Load ClojureDoc" :n "d" #'cider-clojuredocs)
      :n "h" #'cider-doc
      :n "c" #'rs/cider-clear-all-buffers
+     :n "C" #'rs/portal/clear
      :n "i" #'cider-inspect-last-result
      :n "p" #'cider-eval-sexp-at-point
      :n "f" #'cider-eval-defun-at-point

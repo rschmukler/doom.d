@@ -204,18 +204,24 @@
     (describe 1)
     (it 2)
     (it 2)
+    (letfn 1)
     (fn-traced :defn)
     (defn-traced :defn)
     (assert-match 1)
     (assert-exception 1)
     (at-media 1)
-    (fiber-loop 1))
+    (fiber-loop 1)
+    (agent-loop 1)
+    (js-await 1))
   (add-to-list 'clojure-align-binding-forms "let-flow")
   (setq clojure-indent-style 'align-arguments)
   (setq cider-default-cljs-repl 'shadow)
   (put '>defn 'clojure-doc-string-elt 2)
   (put '>defn- 'clojure-doc-string-elt 2)
   (put 'defsys 'clojure-doc-string-elt 2)
+  (put 'defevent-db 'clojure-doc-string-elt 2)
+  (put 'defevent-fx 'clojure-doc-string-elt 2)
+  (put 'defsub 'clojure-doc-string-elt 2)
   (put 'defhandler 'clojure-doc-string-elt 2)
   (put 'defstream 'clojure-doc-string-elt 2)
   (put 'defn-traced 'clojure-doc-string-elt 2)
@@ -241,16 +247,79 @@
     (interactive)
     (cider-interactive-eval "(systemic.core/stop!)"))
 
+  (defun rs/systemic/start-last-sexp ()
+    "Starts the systemic system at the last sexp"
+    (interactive)
+    (cider-interactive-eval (concat "(systemic.core/start! `" (cider-sexp-at-point) ")")))
+
+  (defun rs/systemic/stop-last-sexp ()
+    "Starts the systemic system at the last sexp"
+    (interactive)
+    (cider-interactive-eval (concat "(systemic.core/stop! `" (cider-sexp-at-point) ")")))
+
+  (defun rs/systemic/restart-last-sexp ()
+    "Restart the systemic system at the last sexp"
+    (interactive)
+    (cider-interactive-eval (concat "(systemic.core/restart! `" (cider-sexp-at-point) ")")))
+
+  (defvar rs/wing/alias nil)
   (defun rs/wing/sync-libs ()
     "Calls Integrant reset"
     (interactive)
-    (cider-interactive-eval "(wing.repl/sync-libs!)"))
+    (if rs/wing/alias
+        (cider-interactive-eval (format "(wing.repl/sync-libs! :%s)" rs/wing/alias))
+        (cider-interactive-eval "(wing.repl/sync-libs!)")))
+
+  (defun rs/malli/try-start-dev ()
+    (interactive)
+    (cider-interactive-eval
+     "(let [last *1]
+        (try
+          (with-out-str
+            (let [start! (requiring-resolve 'malli.dev/start!)
+                  fail!  (requiring-resolve 'malli.core/-fail!)]
+              (start! {:report fail!})))
+          last
+          (catch java.io.FileNotFoundException _
+            last)
+          (catch Exception e
+            (throw e))))"))
+
+  (defun rs/malli/wrap-cider (origin-fn &rest args)
+    (let ((res (apply origin-fn args)))
+      (nth 2 (buffer-list))
+      (when (eq (cider-repl-type-for-buffer) 'clj)
+        (rs/malli/try-start-dev))
+      res))
+
+  (advice-add 'cider-eval-buffer :around #'rs/malli/wrap-cider)
+  (advice-add 'cider-eval-last-sexp :around #'rs/malli/wrap-cider)
+  (advice-add 'cider-eval-defun-at-point :around #'rs/malli/wrap-cider)
+  (advice-add 'cider-eval-sexp-at-point :around #'rs/malli/wrap-cider)
+
+  (defun rs/portal/clear ()
+    (interactive)
+    (with-current-buffer (first (cider-repl-buffers 'clj 't))
+      (cider-nrepl-sync-request:eval "(portal.api/clear)")))
+
+  ; (advice-remove 'cider-eval-buffer #'rs/malli/wrap-cider)
+  ; (advice-remove 'cider-eval-last-sexp #'rs/malli/wrap-cider)
+  ; (advice-remove 'cider-eval-defun-at-point #'rs/malli/wrap-cider)
+  ; (advice-remove 'cider-eval-sexp-at-point #'rs/malli/wrap-cider)
 
   (setq clojure-align-forms-automatically t)
   (setq cider-cljs-lein-repl
         "(do (require 'figwheel-sidecar.repl-api)
          (figwheel-sidecar.repl-api/start-figwheel!)
          (figwheel-sidecar.repl-api/cljs-repl))")
+
+  (projectile-register-project-type
+   'clojure-cli
+   '("deps.edn")
+   :project-file "deps.edn"
+   :src-dir "src/"
+   :test-dir "test/"
+   :test-suffix "_test")
   (setq cljr-magic-require-namespaces
         '(("io" . "clojure.java.io")
           ("sh" . "clojure.java.shell")
@@ -265,7 +334,7 @@
           ("component" . "com.stuartsierra.component")
           ("http" . "hato.client")
           ("url" . "cemerick.url")
-          ("sql" . "honeysql.core")
+          ("sql" . "honey.sql")
           ("csv" . "clojure.data.csv")
           ("json" . "jsonista.core")
           ("s" . "manifold.stream")
@@ -301,6 +370,9 @@
   (add-hook 'company-completion-started-hook 'ans/set-company-maps)
   (add-hook 'company-completion-finished-hook 'ans/unset-company-maps)
   (add-hook 'company-completion-cancelled-hook 'ans/unset-company-maps)
+  (setq cider-show-error-buffer nil)
+  (set-popup-rule!
+    '(("^\\*cider-error" :select t :size 0.5)))
 
 
   ;; Overwrite this cider function for custom focus modes
@@ -355,6 +427,12 @@ with the given LIMIT."
       "RET" nil
       "TAB" nil
       "C-h" nil))
+
+  (defun cider-eval-last-sexp-and-yank ()
+    "Evaluate the expression preceding point and yank the result"
+    (interactive)
+    (cider-eval-last-sexp)
+    (cider-kill-last-result))
 
 
   (defun ans/set-company-maps (&rest unused)
