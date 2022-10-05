@@ -135,8 +135,8 @@
 
    (:desc "org" :prefix "o"
      :desc "Org Agenda"          :n  "a" #'org-agenda
-     :desc "Org Capture"         :n  "o" #'org-roam-capture
-     :desc "Find node"           :n  "f" #'org-roam-node-find
+     :desc "Org Capture"         :n  "c" #'org-roam-capture
+     :desc "Find node"           :n  "o" #'org-roam-node-find
      :desc "Show todos"          :n  "t" #'org-todo-list)
 
    (:desc "insert" :prefix "i"
@@ -166,13 +166,15 @@
      :desc "Switch to 6th workspace"  :n "5"   (λ! (+workspace/switch-to 5))
      :desc "Switch to 7th workspace"  :n "6"   (λ! (+workspace/switch-to 6))
      :desc "Switch to 8th workspace"  :n "7"   (λ! (+workspace/switch-to 7))
-     :desc "Switch to 9th workspace"  :n "8"   (λ! (+workspace/switch-to 8)))
-
-   )
+     :desc "Switch to 9th workspace"  :n "8"   (λ! (+workspace/switch-to 8))))
 
  (:after magit
    :map magit-blame-mode-map
    :n "q" #'magit-blame-quit)
+
+ (:after org-agenda
+  :map org-agenda-mode-map
+  :desc "Open Link" :n "C-<return>" #'org-agenda-open-link)
 
  (:after code-review
   :map forge-pullreq-section-map

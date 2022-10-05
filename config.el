@@ -9,17 +9,66 @@
 (after! org
   (setq org-agenda-files (file-expand-wildcards "~/docs/org/*.org"))
   (setq org-cycle-separator-lines 1)
+  (setq org-archive-location "::* Archived Tasks")
+  (setq org-agenda-dim-blocked-tasks 't)
   (defvar +org-dir (expand-file-name "~/docs/org"))
-  (setq org-capture-templates
-        '(("c" "Code Task" entry (file+headline "~/docs/org/main.org" "Coding Tasks")
-           "* TODO %?\n  Entered on: %U - %a\n")
-          ("t" "Task" entry (file+headline "~/docs/org/main.org" "Tasks")
-           "* TODO %?\n  Entered on: %U")
-          ("n" "Note" entry (file+datetree "~/docs/org/main.org")
-           "* %?\n\n"))))
+  (setq org-todo-keywords
+        '((sequence "[ ](t)" "[.](s)" "[!](h)" "[?](q)" "[@](b)" "|" "[x](d)" "[#](k)")))
+  (advice-add 'org-agenda-quit :after #'org-save-all-org-buffers)
+  (setq org-todo-keyword-faces
+        '(("[.]" . +org-todo-active)
+          ("[?]" . +org-todo-onhold)
+          ("[@]" . +org-todo-onhold)
+          ("[!]" . +org-todo-onhold)
+          ("[#]" . +org-todo-cancel))))
 
 (after! org-roam
   (setq org-roam-directory (expand-file-name (concat org-directory "/" "roam"))))
+
+(use-package! vulpea
+  :hook
+  ((org-roam-db-autosync-mode . vulpea-db-autosync-enable))
+  :config
+  (defun vulpea-agenda-category (&optional len)
+    "Get category of item at point for agenda.
+
+Category is defined by one of the following items:
+
+- CATEGORY property
+- TITLE keyword
+- TITLE property
+- filename without directory and extension
+
+When LEN is a number, resulting string is padded right with
+spaces and then truncated with ... on the right if result is
+longer than LEN.
+
+Usage example:
+
+  (setq org-agenda-prefix-format
+        '((agenda . \" %(vulpea-agenda-category) %?-12t %12s\")))
+
+Refer to `org-agenda-prefix-format' for more information."
+    (let* ((file-name (when buffer-file-name
+                        (file-name-sans-extension
+                         (file-name-nondirectory buffer-file-name))))
+           (title (vulpea-buffer-prop-get "title"))
+           (category (org-get-category))
+           (result
+            (or (if (and
+                     title
+                     (string-equal category file-name))
+                    title
+                  category)
+                "")))
+      (if (numberp len)
+          (s-truncate len (s-pad-right len " " result))
+        result)))
+  (setq org-agenda-prefix-format
+        '((agenda . " %i %(vulpea-agenda-category 20)%?-12t% s")
+          (todo . " %i %(vulpea-agenda-category 20) ")
+          (tags . " %i %(vulpea-agenda-category 20) ")
+          (search . " %i %(vulpea-agenda-category 20) "))))
 
 (after! neotree
   (setq doom-themes-neotree-file-icons 'icons)
