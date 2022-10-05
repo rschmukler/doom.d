@@ -47,3 +47,4 @@
 (package! lispy :pin "dbab5899f26fa2ee27f5c2e8b32c20f2f69242fb")
 (when (featurep! :editor evil)
   (package! lispyville :pin "14ee8711d58b649aeac03581d22b10ab077f06bd"))
+(package! fabb :recipe (:local-repo "fabb" :build (:not compile)))

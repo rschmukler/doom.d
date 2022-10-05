@@ -617,6 +617,17 @@ with the given LIMIT."
              filename (current-buffer))
           (message "No test file found."))))))
 
+(use-package! fabb
+  :config
+  (map!
+   (:leader
+    :desc "Fabb Status" :n "t" #'fabb-status
+    :desc "Fabb Ivy" :n "T" #'fabb-invoke-ivy)
+   (:map fabb-mode-map
+    :n "q" #'kill-this-buffer
+    :n "/" #'fabb-invoke-ivy
+    :n "?" #'fabb-dispatch)))
+
 (load! "+functions")
 (load! "+theming")
 (load! "+bindings")
