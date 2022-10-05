@@ -35,7 +35,7 @@
   (magit-add-section-hook 'magit-status-sections-hook 'magit-todos--insert-todos nil)
   (setq magit-todos-branch-list-merge-base-ref "origin/main"))
 
-(after! magit-forge
+(after! forge
   (magit-add-section-hook 'magit-status-sections-hook
                           'forge-insert-authored-pullreqs
                           'forge-insert-pullreqs nil)
@@ -50,10 +50,12 @@
     ["Edit"
      ("e a" "assignees" forge-edit-topic-assignees)
      ("e l" "labels" forge-edit-topic-labels)
-     ("e r" "review requests" forge-edit-topic-review-requests)])
-  )
+     ("e r" "review requests" forge-edit-topic-review-requests)]))
 
-(use-package! code-review)
+(use-package! code-review
+  :config
+  (setq code-review-new-buffer-window-strategy #'switch-to-buffer))
+
 (use-package! git-link
   :config
   (setq git-link-use-commit t))
@@ -120,6 +122,7 @@
 
 (after! magit
   :config
+  (setq +workspaces-switch-project-function #'magit-status)
   (setq magit-prefer-remote-upstream t))
 
 

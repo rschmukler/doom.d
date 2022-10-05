@@ -175,6 +175,9 @@
    :n "q" #'magit-blame-quit)
 
  (:after code-review
+  :map forge-pullreq-section-map
+  (:desc "Visit pull request" :g "RET" #'code-review-forge-pr-at-point)
+  (:desc "Browse pull request" :g "S-<return>" #'forge-browse-dwim)
   :map forge-pullreq-list-mode-map
   (:desc "Start a code review" :n "r" #'code-review-forge-pr-at-point)
   (:desc "Start a code review" :n "RET" #'code-review-forge-pr-at-point)
