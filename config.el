@@ -2,6 +2,10 @@
 
 (setq epa-pinentry-mode 'loopback)
 
+(setq whitespace-line-column 100 whitespace-style '(face trailing lines-tail))
+(setq whitespace-global-modes '(not org-mode whitespace-mode magit-mode))
+(global-whitespace-mode 1)
+
 (after! org
   (setq org-agenda-files (file-expand-wildcards "~/docs/org/*.org"))
   (setq org-cycle-separator-lines 1)
