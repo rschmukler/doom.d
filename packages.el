@@ -27,9 +27,23 @@
 (package! flycheck-clj-kondo)
 (package! helm-cider)
 (package! dhall-mode)
+(package! cider :pin "e75706f53bd0470bcec0d1e3a4cef6a043a20fc7")
+(package! map :pin "bb50dbaafc0f71743bd9ffd5784258a9fd682c20")
 (package! ivy-cider
   :recipe (:host github :repo "rschmukler/ivy-cider"))
+(package! gif-screencast
+  :recipe (:host gitlab :repo "ambrevar/emacs-gif-screencast"))
 (package! fennel-mode)
 (package! sqlformat)
 (package! code-review)
 (package! git-link)
+(package! vulpea :recipe (:host github :repo "d12frosted/vulpea"))
+(package! s)
+(package! magit-todos
+  :recipe (:host github :repo "rschmukler/magit-todos" :branch "rs/enhancements"))
+
+;; Fix broken lisp + lispyville pinning
+(package! evil :pin "5826a8877736fc734ea9da7d2bba11ef2b05032c")
+(package! lispy :pin "dbab5899f26fa2ee27f5c2e8b32c20f2f69242fb")
+(when (featurep! :editor evil)
+  (package! lispyville :pin "14ee8711d58b649aeac03581d22b10ab077f06bd"))
