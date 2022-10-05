@@ -52,6 +52,7 @@
        workspaces        ; tab emulation, persistence & separate workspaces
 
        :tools
+       (docker +lsp)     ; Docker
        eval              ; run code, run (also, repls)
       ;ein               ; tame Jupyter notebooks with emacs
        gist              ; interacting with github gists
