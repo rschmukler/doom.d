@@ -247,3 +247,11 @@ information retrieved from files created by the keychain script."
         (cider-repl--clear-region cider-repl-output-start cider-repl-output-end)
         (when (< (point) cider-repl-input-start-mark)
           (goto-char cider-repl-input-start-mark))))))
+
+(defun kubeseal-region (beg end)
+  "Encrypts the provided input using kubeseal and replaces it with the output"
+  (interactive "*r")
+  (if (region-active-p)
+      (shell-command-on-region beg end "kubeseal --raw --from-file=/dev/stdin --scope cluster-wide"
+                               :replace t)
+      (message "No active region")))
