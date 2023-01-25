@@ -22,7 +22,7 @@
               +icons)    ; making dired pretty [functional]
        electric          ; smarter, keyword-based electric-indent
       ;eshell            ; a consistent, cross-platform shell (WIP)
-       imenu             ; an imenu sidebar and searchable code index
+      ;imenu             ; an imenu sidebar and searchable code index
        vc                ; remember, remember that commit in November
 
        :editor
@@ -78,9 +78,10 @@
         macos)           ; MacOS-specific commands
 
        :lang
-       assembly          ; assembly for fun or debugging
+      ;assembly          ; assembly for fun or debugging
        cc                ; C/C++/Obj-C madness
        crystal           ; ruby at the speed of c
+       common-lisp       ; Common lisp
        clojure           ; java with a lisp
        csharp            ; unity, .NET, and mono shenanigans
        data              ; config/data formats

@@ -16,18 +16,21 @@
   (when (eq system-type 'darwin)
     (ns-auto-titlebar-mode)
     (set-face-attribute 'default nil
-                        :family "JetBrains Mono"
+                        :family "Victor Mono"
                         :height 140
                         :weight 'normal
                         :width 'normal)
     (load-theme 'doom-dream-gradient t))
   (when (eq system-type 'gnu/linux)
     (set-face-attribute 'default nil
-                        :family "JetBrainsMono"
+                        :family "Victor Mono"
                         :height 120
                         :weight 'normal
                         :width 'normal)
-    (load-theme 'doom-one)))
+    (load-theme 'doom-moonlight)
+    (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+    (set-face-attribute 'font-lock-doc-face nil :slant 'italic)
+    ))
 
 
 (cond

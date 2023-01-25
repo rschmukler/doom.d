@@ -343,6 +343,11 @@
     :localleader
     :n "B" (λ!  (rs/cider-cycle-repl 't))))
 
+ (:after sly-mode
+   (:map sly-mode-map
+     :localleader
+     :n  "f"  #'sly-eval-defun))
+
  ;; org-mode
  (:after org-mode
    (:map org-mode-map

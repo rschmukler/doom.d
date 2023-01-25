@@ -1,6 +1,6 @@
 ;;; private/rschmukler/config.el -*- lexical-binding: t; -*-
 
-(setq epa-pinentry-mode 'loopback)
+(setq epg-pinentry-mode 'loopback)
 
 (setq whitespace-line-column 100 whitespace-style '(face trailing lines-tail))
 (setq whitespace-global-modes '(not org-mode whitespace-mode magit-mode))
@@ -250,11 +250,14 @@ Refer to `org-agenda-prefix-format' for more information."
     (checking 3)
     (>defn :defn)
     (>defn- :defn)
+    (defnc :defn)
+    (defnc- :defn)
+    (defresolver :defn)
+    (fnc :defn)
     (match 1)
     (cond 0)
     (case 1)
     (describe 1)
-    (it 2)
     (it 2)
     (letfn 1)
     (fn-traced :defn)
@@ -277,6 +280,11 @@ Refer to `org-agenda-prefix-format' for more information."
   (put 'defhandler 'clojure-doc-string-elt 2)
   (put 'defstream 'clojure-doc-string-elt 2)
   (put 'defn-traced 'clojure-doc-string-elt 2)
+  (put 'defui 'clojure-doc-string-elt 2)
+  (put 'defui- 'clojure-doc-string-elt 2)
+  (put 'defnc 'clojure-doc-string-elt 2)
+  (put 'defnc- 'clojure-doc-string-elt 2)
+  (put 'defresolver 'clojure-doc-string-elt 2)
 
 
   (defun rs/ig/restart ()
@@ -315,6 +323,7 @@ Refer to `org-agenda-prefix-format' for more information."
     (cider-interactive-eval (concat "(systemic.core/restart! `" (cider-sexp-at-point) ")")))
 
   (defvar rs/wing/alias nil)
+  (defvar rs/malli/wrap-cider-enabled nil)
   (defun rs/wing/sync-libs ()
     "Calls Integrant reset"
     (interactive)
@@ -340,7 +349,7 @@ Refer to `org-agenda-prefix-format' for more information."
   (defun rs/malli/wrap-cider (origin-fn &rest args)
     (let ((res (apply origin-fn args)))
       (nth 2 (buffer-list))
-      (when (eq (cider-repl-type-for-buffer) 'clj)
+      (when (and (eq (cider-repl-type-for-buffer) 'clj) rs/malli/wrap-cider-enabled)
         (rs/malli/try-start-dev))
       res))
 
