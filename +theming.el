@@ -14,32 +14,25 @@
 
 (defun rs/initialize-theming ()
   (when (eq system-type 'darwin)
-    (ns-auto-titlebar-mode)
-    (set-face-attribute 'default nil
-                        :family "Victor Mono"
-                        :height 140
-                        :weight 'normal
-                        :width 'normal)
-    (load-theme 'doom-dream-gradient t))
-  (when (eq system-type 'gnu/linux)
-    (set-face-attribute 'default nil
-                        :family "Victor Mono"
-                        :height 120
-                        :weight 'normal
-                        :width 'normal)
-    (load-theme 'doom-moonlight)
-    (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
-    (set-face-attribute 'font-lock-doc-face nil :slant 'italic)
-    ))
+    (add-to-list 'default-frame-alist '(alpha . (85)))
+    (ns-auto-titlebar-mode))
+  (load-theme 'doom-moonlight 't)
+  (set-face-attribute 'default nil
+                      :family "Victor Mono"
+                      :height 140
+                      :weight 'normal
+                      :width 'normal)
+  (set-face-attribute #'font-lock-comment-face nil :slant 'italic)
+  (set-face-attribute #'font-lock-doc-face nil :slant 'italic))
 
 
 (cond
  ((window-system) (rs/initialize-theming))
- ((daemonp) (add-hook 'after-make-frame-functions
-                      '(lambda (frame)
-                         (with-selected-frame frame
-                           (rs/initialize-theming)
-                           )))))
+ ((daemonp)
+  (add-hook #'after-make-frame-functions
+            #'(lambda (frame)
+                (with-selected-frame frame
+                  (rs/initialize-theming))))))
 
 (setq +ivy-buffer-icons t)
 (add-to-list 'default-frame-alist '(alpha . (95)))
