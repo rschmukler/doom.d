@@ -39,4 +39,5 @@
 (package! s)
 (package! magit-todos
   :recipe (:host github :repo "rschmukler/magit-todos" :branch "rs/enhancements"))
-(package! fabb :recipe (:local-repo "fabb" :build (:not compile)))
+(package! fabb
+  :recipe (:host github :repo "teknql/fabb" :build (:not compile)))
