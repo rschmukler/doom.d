@@ -127,9 +127,9 @@ Refer to `org-agenda-prefix-format' for more information."
 (after! projectile
   (setq projectile-create-missing-test-files t)
   (projectile-register-project-type 'haskell-stack '("stack.yaml")
-                                    :compile "stack build"
-                                    :test "stack build --test"
-                                    :test-suffix "Test")
+                              :compile "stack build"
+                              :test "stack build --test"
+                              :test-suffix "Test")
   (projectile-mode)
   (projectile-load-known-projects))
 
@@ -267,7 +267,9 @@ Refer to `org-agenda-prefix-format' for more information."
     (at-media 1)
     (fiber-loop 1)
     (agent-loop 1)
-    (js-await 1))
+    (js-await 1)
+    (fnk 1)
+    (fw 1))
   (add-to-list 'clojure-align-binding-forms "let-flow")
   (setq clojure-indent-style 'align-arguments)
   (setq cider-default-cljs-repl 'shadow)
@@ -374,13 +376,14 @@ Refer to `org-agenda-prefix-format' for more information."
          (figwheel-sidecar.repl-api/start-figwheel!)
          (figwheel-sidecar.repl-api/cljs-repl))")
 
-  (projectile-register-project-type
-   'clojure-cli
-   '("deps.edn")
-   :project-file "deps.edn"
-   :src-dir "src/"
-   :test-dir "test/"
-   :test-suffix "_test")
+  (after! projectile
+    (projectile-register-project-type
+     'clojure-cli
+     '("deps.edn")
+     :project-file "deps.edn"
+     :src-dir "src/"
+     :test-dir "test/"
+     :test-suffix "_test"))
   (setq cljr-magic-require-namespaces
         '(("io" . "clojure.java.io")
           ("sh" . "clojure.java.shell")
