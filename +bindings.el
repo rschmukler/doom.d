@@ -335,6 +335,8 @@
      :n "c" #'rs/cider-clear-all-buffers
      :n "C" #'rs/portal/clear
      :n "i" #'cider-inspect-last-result
+     :n "e c" #'cider-eval-last-sexp-in-context
+     :n "e R" #'cider-eval-last-sexp-and-replace
      :n "p" #'cider-eval-sexp-at-point
      :n "f" #'cider-eval-defun-at-point
      :n "t" #'cider-test-run-ns-tests
