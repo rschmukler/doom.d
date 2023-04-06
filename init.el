@@ -5,6 +5,10 @@
 
 (setq org-directory (expand-file-name "~/docs/org"))
 
+(when (eq system-type 'darwin)
+  (setq exec-path (cons "/opt/homebrew/bin" exec-path))
+  (setenv "PATH" (concat "/opt/homebrew/bin:" (getenv "PATH"))))
+
 (doom! :feature
       ;debugger          ; stepping through code, to help you add bugs
 
