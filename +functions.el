@@ -255,3 +255,41 @@ information retrieved from files created by the keychain script."
       (shell-command-on-region beg end "kubeseal --raw --from-file=/dev/stdin --scope cluster-wide"
                                :replace t)
       (message "No active region")))
+
+(defvar rs-cider-debug-sexp
+  nil
+  "The sexp currently used for debugging")
+
+(defvar rs-cider-debug-sexp-b-local
+  nil
+  "The sexp used locally in the buffer for debugging")
+
+(defvar rs-cider-debug-use-global
+  't
+  "Whether to use a global (or buffer local) variable for debug the sexp")
+
+(defun rs/cider-debug/set-sexp ()
+  "Sets the last sexp under the cursor to to the debug sexp"
+  (interactive)
+  (let ((last-sexp (evil-collection-cider-last-sexp #'cider-last-sexp)))
+    (if rs-cider-debug-use-global
+      (setq rs-cider-debug-sexp last-sexp)
+      (setq-local rs-cider-debug-sexp-b-local last-sexp))
+    (message (format "Debug sexp set to: %s" last-sexp))))
+
+(defun rs/cider-debug/eval-sexp (&optional output-to-current-buffer)
+  "Evaluates the debug function"
+  (interactive "P")
+  (let ((sexp (if rs-cider-debug-use-global
+                rs-cider-debug-sexp
+                rs-cider-debug-sexp-b-local)))
+    (cider-interactive-eval
+     sexp
+     (when output-to-current-buffer (cider-eval-print-handler))
+     (cider-last-sexp 'bounds)
+     (cider--nrepl-pr-request-map))))
+
+(defun rs/cider-debug/toggle-use-global ()
+  "Toggles whether we use a global variable for storing the debug expression"
+  (setq rs-cider-debug-use-global (not rs-cider-debug-use-global))
+  (message (format "Global debug is %s." (if rs-cider-debug-use-global "enabled" "disabled"))))
