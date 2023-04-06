@@ -312,6 +312,7 @@
      :n "C-x C-y" #'cider-eval-last-sexp-and-yank
      :n "C-x C-d" #'rs/cider-debug/set-sexp
      :n "C-x C-r" #'rs/cider-debug/eval-sexp
+     :n "C-x C-p" #'rs/cider/eval-last-sexp-up-to-point
      :leader
      :desc "Lookup documentation at point" :n "d" #'cider-doc
      :desc "Jump to definition at point" :n "l" #'cider-find-var

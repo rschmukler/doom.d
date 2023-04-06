@@ -293,3 +293,20 @@ information retrieved from files created by the keychain script."
   "Toggles whether we use a global variable for storing the debug expression"
   (setq rs-cider-debug-use-global (not rs-cider-debug-use-global))
   (message (format "Global debug is %s." (if rs-cider-debug-use-global "enabled" "disabled"))))
+
+(defun rs/cider/eval-last-sexp-up-to-point (&optional output-to-current-buffer)
+  "Similar to cider eval sexp up to point but doesn't require you to be on trailing white space"
+  (interactive "P")
+  (let* ((cursor-text (buffer-substring-no-properties (point) (1+ (point))))
+         (end-delim? (member cursor-text '("}" ")" "]")))
+         (beg-of-sexp (save-excursion (when end-delim? (backward-up-list)) (up-list) (backward-list) (point)))
+         (beg-delimiter (save-excursion (when end-delim? (backward-up-list)) (up-list) (backward-list) (char-after)))
+         (beg-set? (save-excursion (when end-delim? (backward-up-list)) (up-list) (backward-list) (char-before)))
+         (code (buffer-substring-no-properties beg-of-sexp (1+ (point))))
+         (code (if (= beg-set? ?#) (concat (list beg-set?) code) code))
+         (code (concat code (list (cider--matching-delimiter beg-delimiter)))))
+    (cider-interactive-eval code
+                            (when output-to-current-buffer
+                              (cider-eval-print-handler))
+                            (list beg-of-sexp (1+ (point)))
+                            (cider--nrepl-pr-request-map))))
