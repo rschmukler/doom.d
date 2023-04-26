@@ -172,7 +172,10 @@ Refer to `org-agenda-prefix-format' for more information."
 (after! magit
   :config
   (setq +workspaces-switch-project-function #'magit-status)
-  (setq magit-prefer-remote-upstream t))
+  (setq magit-prefer-remote-upstream t)
+  (when (eq system-type 'darwin)
+    (setq magit-delete-by-moving-to-trash nil)
+    (setq delete-by-moving-to-trash nil)))
 
 
 ;; (add-hook! flycheck-rust
