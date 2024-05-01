@@ -262,7 +262,7 @@ Refer to `org-agenda-prefix-format' for more information."
     (case 1)
     (describe 1)
     (it 2)
-    (letfn 1)
+    (letfn '(0 ((:defn)) :form))
     (fn-traced :defn)
     (defn-traced :defn)
     (assert-match 1)
@@ -272,7 +272,8 @@ Refer to `org-agenda-prefix-format' for more information."
     (agent-loop 1)
     (js-await 1)
     (fnk 1)
-    (fw 1))
+    (fw 1)
+    (defc '(1 :defn (:defn))))
   (add-to-list 'clojure-align-binding-forms "let-flow")
   (setq clojure-indent-style 'align-arguments)
   (setq cider-default-cljs-repl 'shadow)
@@ -290,6 +291,7 @@ Refer to `org-agenda-prefix-format' for more information."
   (put 'defnc 'clojure-doc-string-elt 2)
   (put 'defnc- 'clojure-doc-string-elt 2)
   (put 'defresolver 'clojure-doc-string-elt 2)
+  (put 'defc 'clojure-doc-string-elt 2)
 
 
   (defun rs/ig/restart ()

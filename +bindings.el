@@ -310,6 +310,7 @@
  (:after cider-mode
    (:map cider-mode-map
      :n "C-x C-y" #'cider-eval-last-sexp-and-yank
+     :n "C-x C-t" #'cider-tap-last-sexp
      :n "C-x C-d" #'rs/cider-debug/set-sexp
      :n "C-x C-r" #'rs/cider-debug/eval-sexp
      :n "C-x C-p" #'rs/cider/eval-last-sexp-up-to-point
