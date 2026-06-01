@@ -1,11 +1,8 @@
 ;;; ../dev/rschmukler/doom.d/+org.el -*- lexical-binding: t; -*-
 ;;;
 (defun org/agenda-files ()
-  "Accessor function to get relevant files from org-roam"
-  (mapcar #'car
-          (org-roam-db-query
-           [:select [nodes:file]
-            :from nodes])))
+  "Accessor function to get relevant files from the vulpea database."
+  (seq-uniq (delq nil (mapcar #'vulpea-note-path (vulpea-db-query)))))
 
 (defun org/set-agenda-files (&rest _)
   "Set agendas files to a relevant set of roam files."

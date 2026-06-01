@@ -136,7 +136,7 @@
    (:desc "org" :prefix "o"
      :desc "Org Agenda"          :n  "a" #'org-agenda
      :desc "Org Capture"         :n  "c" #'org-roam-capture
-     :desc "Find node"           :n  "o" #'org-roam-node-find
+     :desc "Find node"           :n  "o" #'vulpea-find
      :desc "Show todos"          :n  "t" #'org-todo-list)
 
    (:desc "insert" :prefix "i"

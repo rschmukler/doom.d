@@ -26,9 +26,26 @@
   (setq org-roam-directory (expand-file-name (concat org-directory "/" "roam"))))
 
 (use-package! vulpea
-  :hook
-  ((org-roam-db-autosync-mode . vulpea-db-autosync-enable))
+  :after org
+  :init
+  ;; vulpea v2 maintains its own database, independent of org-roam.
+  (setq vulpea-db-location
+        (expand-file-name "vulpea.db" doom-cache-dir))
+  ;; Index the same notes org-roam used to track.
+  (setq vulpea-db-sync-directories
+        (list (expand-file-name "roam" org-directory)))
+  ;; Use org-roam's alias property so existing :ROAM_ALIASES: keep working.
+  (setq vulpea-buffer-alias-property "ROAM_ALIASES")
+  ;; Performance / behavior tuning.
+  (setq vulpea-db-parse-method 'single-temp-buffer)
+  (setq vulpea-db-sync-external-method 'auto)
+  ;; Build/refresh the DB asynchronously when autosync is enabled so
+  ;; startup stays fast. The DB persists between sessions on disk.
+  (setq vulpea-db-sync-scan-on-enable 'async)
   :config
+  ;; Start file-watcher based auto-sync (replaces the old
+  ;; `vulpea-db-autosync-enable' / org-roam-db-autosync coupling).
+  (vulpea-db-autosync-mode +1)
   (defun vulpea-agenda-category (&optional len)
     "Get category of item at point for agenda.
 
