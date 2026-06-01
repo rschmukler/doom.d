@@ -102,21 +102,14 @@ Refer to `org-agenda-prefix-format' for more information."
   (setq magit-todos-branch-list-merge-base-ref "origin/main"))
 
 (after! forge
-  (magit-add-section-hook 'magit-status-sections-hook
-                          'forge-insert-authored-pullreqs
-                          'forge-insert-pullreqs nil)
-  (magit-add-section-hook 'magit-status-sections-hook
-                          'forge-insert-requested-reviews
-                          'forge-insert-pullreqs nil)
-
   (transient-append-suffix 'forge-dispatch '(0 -1)
     ["Misc"
      ("y" "yank" forge-copy-url-at-point-as-kill)])
   (transient-append-suffix 'forge-dispatch '(0 -1)
     ["Edit"
-     ("e a" "assignees" forge-edit-topic-assignees)
-     ("e l" "labels" forge-edit-topic-labels)
-     ("e r" "review requests" forge-edit-topic-review-requests)]))
+     ("e a" "assignees" forge-topic-set-assignees)
+     ("e l" "labels" forge-topic-set-labels)
+     ("e r" "review requests" forge-topic-set-review-requests)]))
 
 (use-package! code-review
   :config
