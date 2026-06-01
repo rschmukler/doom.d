@@ -41,7 +41,12 @@
   :recipe (:host github :repo "rschmukler/magit-todos" :branch "rs/enhancements"))
 (package! fabb
   :recipe (:host github :repo "teknql/fabb" :build (:not compile)))
+(package! copilot
+  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
 (package! eca
   :recipe (:host github :repo "editor-code-assistant/eca-emacs" :files ("*.el")))
+(package! forge
+  :recipe (:host github :repo "magit/forge"))
+(package! direnv)
 (package! ultra-scroll
   :recipe (:host github :repo "jdtsmith/ultra-scroll"))
