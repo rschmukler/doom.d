@@ -251,10 +251,15 @@ information retrieved from files created by the keychain script."
 (defun kubeseal-region (beg end)
   "Encrypts the provided input using kubeseal and replaces it with the output"
   (interactive "*r")
-  (if (region-active-p)
-      (shell-command-on-region beg end "kubeseal --raw --from-file=/dev/stdin --scope cluster-wide"
-                               :replace t)
-      (message "No active region")))
+  (let* ((kubeseal (executable-find "kubeseal"))
+        (process-environment
+         (cons (concat "PATH=" (string-join exec-path ":"))
+               process-environment)))
+   (if kubeseal
+       (shell-command-on-region beg end
+                                (concat kubeseal " --raw --from-file=/dev/stdin --scope cluster-wide")
+                                (current-buffer) t)
+     (message "No active region"))))
 
 (defvar rs-cider-debug-sexp
   nil
