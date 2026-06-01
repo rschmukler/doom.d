@@ -43,3 +43,5 @@
   :recipe (:host github :repo "teknql/fabb" :build (:not compile)))
 (package! eca
   :recipe (:host github :repo "editor-code-assistant/eca-emacs" :files ("*.el")))
+(package! ultra-scroll
+  :recipe (:host github :repo "jdtsmith/ultra-scroll"))
