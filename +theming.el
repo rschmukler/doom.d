@@ -13,15 +13,21 @@
     (with-selected-frame frame (doom/reload-theme))))
 
 (defun rs/initialize-theming ()
-  (when (eq system-type 'darwin)
+  (load-theme 'doom-moonlight 't)
+  (if (eq system-type 'darwin)
     (add-to-list 'default-frame-alist '(alpha . (85)))
     (ns-auto-titlebar-mode))
-  (load-theme 'doom-moonlight 't)
-  (set-face-attribute 'default nil
-                      :family "Victor Mono"
-                      :height 140
-                      :weight 'normal
-                      :width 'normal)
+  (if (eq system-type 'darwin)
+    (set-face-attribute 'default nil
+                          :family "JetBrainsMono Nerd Font"
+                          :height 140
+                          :weight 'normal
+                          :width 'normal)
+    (set-face-attribute 'default nil
+                        :family "Victor Mono"
+                        :height 140
+                        :weight 'normal
+                        :width 'normal))
   (set-face-attribute #'font-lock-comment-face nil :slant 'italic)
   (set-face-attribute #'font-lock-doc-face nil :slant 'italic))
 
