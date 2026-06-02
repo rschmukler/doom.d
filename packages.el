@@ -44,7 +44,7 @@
 (package! copilot
   :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
 (package! eca
-  :recipe (:host github :repo "editor-code-assistant/eca-emacs" :files ("*.el")))
+  :recipe (:host github :repo "rschmukler/eca-emacs" :files ("*.el")))
 (package! forge
   :recipe (:host github :repo "magit/forge"))
 (package! difftastic
