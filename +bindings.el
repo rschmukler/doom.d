@@ -208,17 +208,6 @@
    (:map counsel-ag-map
      [backtab]  #'+ivy/wgrep-occur           ; search/replace on results
      "C-SPC"    #'counsel-git-grep-recenter)) ; preview
- ;; Rust Mode
- (:after rustic
-   (:map rustic-mode-map
-      :leader
-     :desc "Find documentation" :n "d" #'+lookup/documentation
-     :desc "Find definition" :n "l" #'+lookup/definition
-     :localleader
-     :desc "Peek implementations" :n "i" #'lsp-ui-peek-find-implementation
-     :desc "Apply LSP Code Action" :n "a" #'lsp-ui-sideline-apply-code-actions))
-
-
  ;; Racket Mode
  (:after racket-mode
    (:leader

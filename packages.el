@@ -6,9 +6,6 @@
 (package! racket-mode)
 (package! geiser)
 (package! graphql-mode)
-(package! rust-mode)
-(package! racer)
-(package! flycheck-rust)
 
 ;; (package! lsp-mode)
 ;; (package! lsp-ui)

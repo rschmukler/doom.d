@@ -152,6 +152,7 @@
        lisp-editing      ; rainbow-delimiters/aggressive-indent/lispyville
        elixir            ; elixir flycheck (mix/credo) + alchemist + keybindings
        haskell           ; haskell-mode/lsp-haskell + helpers + keybindings
+       rust              ; rust-mode/rustic format-on-save + keybindings
 
        :config
        ;; The default module set reasonable defaults for Emacs. It also provides

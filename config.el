@@ -42,17 +42,6 @@
 (add-hook! elm-mode
   (flycheck-mode))
 
-(use-package! rust-mode
-  :mode "\\.rs$"
-  :config
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
-  (setq rust-format-on-save t)
-  (flycheck-mode))
-
-(after! rustic
-  :mode "\\.rs$"
-  (setq rustic-format-on-save t))
-
 (use-package! dockerfile-mode
   :mode "Dockerfile$")
 
@@ -69,21 +58,6 @@
                    (when (equal major-mode 'reason-mode)
                      (refmt)))))
 
-
-;; (add-hook! flycheck-rust
-;;   :after rust-mode
-;;   :config
-;;   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
-
-;; (use-package! racer
-;;   :after rust-mode
-;;   :config
-;;   (setq racer-rust-src-path
-;;         (concat
-;;          (replace-regexp-in-string "\n$" "" (shell-command-to-string "rustc --print sysroot"))
-;;          "/lib/rustlib/src/rust/src"))
-;;   (company-mode)
-;;   (eldoc-mode))
 
 (use-package! erlang
   :mode "\\.erl$"
