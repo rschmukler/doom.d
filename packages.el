@@ -40,13 +40,17 @@
 (package! copilot
   :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
 (package! eca
-  :recipe (:host github :repo "rschmukler/eca-emacs" :files ("*.el")))
+  ;; :recipe (:host github :repo "editor-code-assistant/eca-emacs" :files ("*.el"))
+  :recipe (:local-repo "~/dev/rschmukler/eca-emacs" :files ("*.el"))
+  )
 (package! forge
   :recipe (:host github :repo "magit/forge"))
 (package! difftastic
   :recipe (:host github :repo "pkryger/difftastic.el" :files ("*.el")))
 (package! difftastic-status
-  :recipe (:host github :repo "rschmukler/difftastic-status"))
+  ;; :recipe (:host github :repo "rschmukler/difftastic-status"))
+  :recipe (:local-repo "~/dev/rschmukler/difftastic-status")
+  )
 (package! direnv)
 (package! ultra-scroll
   :recipe (:host github :repo "jdtsmith/ultra-scroll"))
