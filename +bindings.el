@@ -155,7 +155,7 @@
      :desc "Switch workspace"         :n "."   #'+workspace/switch-to
      :desc "Kill all buffers"         :n "x"   #'doom/kill-all-buffers
      :desc "Delete session"           :n "X"   #'+workspace/kill-session
-     :desc "Delete this workspace"    :n "d"   #'+workspace/delete
+     :desc "Delete this workspace"    :n "d"   #'+workspace/kill
      :desc "Load session"             :n "L"   #'+workspace/load-session
      :desc "Next workspace"           :n "]"   #'+workspace/switch-right
      :desc "Previous workspace"       :n "["   #'+workspace/switch-left
