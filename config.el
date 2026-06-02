@@ -144,9 +144,15 @@ Refer to `org-agenda-prefix-format' for more information."
   (projectile-load-known-projects))
 
 
+(use-package! rainbow-delimiters
+  :hook
+  (clojure-mode . rainbow-delimiters-mode)
+  (elixir-mode . rainbow-delimiters-mode)
+  (haskell-mode . rainbow-delimiters-mode)
+  (racket-mode . rainbow-delimiters-mode))
+
 (add-hook! elixir-mode
-  (flycheck-mode)
-  (rainbow-delimiters-mode))
+  (flycheck-mode))
 
 (add-hook! elm-mode
   (flycheck-mode))
@@ -260,8 +266,7 @@ Refer to `org-agenda-prefix-format' for more information."
   :mode "\\.rkt$"
   :config
   (company-mode)
-  (flycheck-mode)
-  (rainbow-delimiters-mode))
+  (flycheck-mode))
 
 (use-package! aggressive-indent
   :hook
@@ -470,9 +475,6 @@ Refer to `org-agenda-prefix-format' for more information."
           ("mt" . "malli.transform")
           ("t" . "tick.alpha.api"))))
 
-(add-hook! clojure-mode
-  (rainbow-delimiters-mode))
-
 ;; (after! company-box
 ;;   (add-function
 ;;    :after
@@ -617,7 +619,6 @@ with the given LIMIT."
 (use-package! haskell-mode
   :mode "\\.hs$"
   :config
-  (rainbow-delimiters-mode)
   ;; (setq haskell-font-lock-symbols t)
   ;; (add-to-list ("<>" . "⊕"))
   (setq haskell-font-lock-symbols-alist

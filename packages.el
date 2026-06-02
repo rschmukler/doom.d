@@ -1,6 +1,7 @@
 ;; -*- no-byte-compile: t; -*-
 ;;; private/rschmukler/packages.el
 
+(package! rainbow-delimiters)
 (package! flycheck)
 (package! flycheck-mix)
 (package! flycheck-credo)
