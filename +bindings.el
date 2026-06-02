@@ -208,12 +208,6 @@
    (:map counsel-ag-map
      [backtab]  #'+ivy/wgrep-occur           ; search/replace on results
      "C-SPC"    #'counsel-git-grep-recenter)) ; preview
- ;; Elixir Mode
- (:after elixir-mode
-   (:leader
-     :desc "Toggle between file and tests"   :n "t" (λ! (alchemist-project-toggle-file-and-tests))
-     :desc "Jump to definition at point"     :n "l" #'alchemist-goto-definition-at-point))
-
  ;; Haskell Mode
  (:after haskell-mode
    :map haskell-mode-map

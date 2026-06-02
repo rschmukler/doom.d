@@ -2,8 +2,6 @@
 ;;; private/rschmukler/packages.el
 
 (package! flycheck)
-(package! flycheck-mix)
-(package! flycheck-credo)
 (package! erlang)
 (package! racket-mode)
 (package! geiser)
