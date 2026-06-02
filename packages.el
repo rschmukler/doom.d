@@ -7,10 +7,7 @@
 (package! geiser)
 (package! graphql-mode)
 
-;; (package! lsp-mode)
-;; (package! lsp-ui)
 (package! yapfify)
-(package! company-lsp)
 (package! dockerfile-mode)
 (package! reason-mode)
 (package! dhall-mode)

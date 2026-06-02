@@ -91,30 +91,6 @@
 (use-package! fennel-mode
   :mode "\\.fnl$")
 
-(use-package! lsp-mode
-  :hook
-  (haskell-mode . lsp)
-  ;; (python-mode . lsp)
-  (rustic-mode . lsp)
-  (rust-mode . lsp)
-  (reason-mode . lsp)
-  :config
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-stdio-connection "reason-language-server")
-                    :major-modes '(reason-mode)
-                    :notification-handlers (ht ("client/registerCapability" 'ignore))
-                    :priority 1
-                    :server-id 'reason-ls))
-  :commands
-  lsp)
-
-(use-package! lsp-ui
-  :commands
-  lsp-ui-mode)
-
-(use-package! company-lsp
-  :commands company-lsp)
-
 ;; (use-package! yapfify
 ;;   :hook
 ;;   (python-mode . yapf-mode)
