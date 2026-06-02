@@ -6,21 +6,6 @@
 (setq whitespace-global-modes '(not org-mode whitespace-mode magit-mode))
 (global-whitespace-mode 1)
 
-(after! company
-  (setq company-idle-delay 0))
-
-(after! ivy
-  (setq ivy-re-builders-alist
-        '((t . ivy--regex-ignore-order)))
-
-  (setq ivy-initial-inputs-alist
-        '((counsel-minor . "")
-          (counsel-package . "")
-          (counsel-org-capture . "")
-          (counsel-M-x . "")
-          (counsel-describe-function . "")
-          (counsel-describe-variable . ""))))
-
 (after! projectile
   (setq projectile-create-missing-test-files t)
   (projectile-register-project-type 'haskell-stack '("stack.yaml")

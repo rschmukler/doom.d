@@ -155,6 +155,7 @@
        rust              ; rust-mode/rustic format-on-save + keybindings
        lsp               ; lsp-mode/lsp-ui core + per-language hooks
        ui                ; neotree + doom-themes/fonts/ligatures + keybindings
+       completion        ; ivy/counsel + company tuning + keybindings
 
        :config
        ;; The default module set reasonable defaults for Emacs. It also provides

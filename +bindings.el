@@ -151,38 +151,6 @@
      :desc "Switch to 8th workspace"  :n "7"   (λ! (+workspace/switch-to 7))
      :desc "Switch to 9th workspace"  :n "8"   (λ! (+workspace/switch-to 8))))
 
- ;; ivy
- (:after ivy
-   :map ivy-minibuffer-map
-   [escape] #'keyboard-escape-quit
-   "M-v" #'yank
-   "M-z" #'undo
-   "C-r" #'evil-paste-from-register
-   "C-k" #'ivy-previous-line
-   "C-j" #'ivy-next-line
-   "C-l" #'ivy-alt-done
-   "C-w" #'ivy-backward-kill-word
-   "C-u" #'ivy-kill-line
-   "C-b" #'backward-word
-   "C-f" #'forward-word)
-
- ;; company
- (:after company
-   :map company-active-map
-   "C-j"         #'company-select-next
-   "C-n"         #'company-select-next
-   "C-k"         #'company-select-previous
-   "C-p"         #'company-select-previous
-   "C-d"         #'company-show-doc-buffer
-   )
-
- ;; counsel
- (:after counsel
-   (:map ivy-mode-map
-     "C-o"      #'ivy-dispatching-done)
-   (:map counsel-ag-map
-     [backtab]  #'+ivy/wgrep-occur           ; search/replace on results
-     "C-SPC"    #'counsel-git-grep-recenter)) ; preview
  ;; Racket Mode
  (:after racket-mode
    (:leader
