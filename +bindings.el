@@ -125,6 +125,8 @@
    (:desc "git" :prefix "g"
      :desc "Git status"        :n  "s" #'magit-status
      :desc "Git blame"         :n  "b" #'magit-blame
+     :desc "Difftastic diff"   :n  "d" #'difftastic-magit-diff
+     :desc "Difftastic show"   :n  "D" #'difftastic-magit-show
      :desc "Git timemachine branch" :n  "B" #'git-timemachine-switch-branch
      :desc "Git time machine"  :n  "t" #'git-timemachine-toggle
      :desc "Git revert hunk"   :n  "r" #'git-gutter:revert-hunk
