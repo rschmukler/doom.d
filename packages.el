@@ -5,7 +5,6 @@
 (package! flycheck)
 (package! flycheck-mix)
 (package! flycheck-credo)
-(package! flycheck-clojure)
 (package! erlang)
 (package! racket-mode)
 (package! geiser)
@@ -25,11 +24,7 @@
 (package! aggressive-indent)
 (package! lispyville)
 (package! reason-mode)
-(package! flycheck-clj-kondo)
-(package! helm-cider)
 (package! dhall-mode)
-(package! ivy-cider
-  :recipe (:host github :repo "rschmukler/ivy-cider"))
 (package! gif-screencast
   :recipe (:host gitlab :repo "ambrevar/emacs-gif-screencast"))
 (package! fennel-mode)

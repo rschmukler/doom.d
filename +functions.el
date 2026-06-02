@@ -50,39 +50,6 @@ current buffer directory."
   "Returns a buffer's active major-mode."
   (with-current-buffer buffer-handle major-mode))
 
-(defun wpc/find-or-create-clojure-or-clojurescript-repl ()
-  (interactive)
-  (require 'projectile)
-  (with-current-buffer (current-buffer)
-    (let ((buffer-name   (wpc/buffer-name-for-clojure-mode major-mode))
-          (repl-function (wpc/repl-function-for-clojure-mode major-mode)))
-      (if (get-buffer buffer-name)
-          (switch-to-buffer buffer-name)
-        (funcall repl-function)))))
-
-(defun wpc/buffer-name-for-clojure-mode (mode)
-  (require 'projectile)
-  (let* ((project-name (projectile-project-name))
-         (cljs-name (concat "*cider-repl CLJS " project-name "*"))
-         (clj-name  (concat "*cider-repl " project-name "*")))
-    (cond ((eq mode 'clojurescript-mode) cljs-name)
-          ((eq mode 'clojure-mode) clj-name)
-          ((eq mode 'clojurec-mode) cljs-name))))
-
-(defun wpc/repl-function-for-clojure-mode (mode)
-  (require 'projectile)
-  (let ((project-name (projectile-project-name))
-        (cljs-fn #'cider-jack-in-clojurescript)
-        (clj-fn  #'cider-jack-in))
-    (cond ((eq mode 'clojurescript-mode) cljs-fn)
-          ((eq mode 'clojure-mode) clj-fn)
-          ((eq mode 'clojurec-mode) cljs-fn))))
-
-(defun wpc/reindent-defun-and-align-clojure-map ()
-  (interactive)
-  (call-interactively #'paredit-reindent-defun)
-  (call-interactively #'clojure-align))
-
 (defun rs/projectile-switch-project-workspace ()
   "Use projectile prompt to find or switch projects in a workspace tab."
   (interactive)
@@ -207,47 +174,6 @@ information retrieved from files created by the keychain script."
                (string-match "GPG_AGENT_INFO[=\s]\\([^\s;\n]*\\)" gpg)
                (setenv       "GPG_AGENT_INFO" (match-string 1 gpg))))))
 
-(defun rs/cider-cycle-buffer-type ()
-  "Cycles between clojure, clojurescript, and clojurec repl types"
-  (interactive)
-  (if (string= "cljc" (file-name-extension (buffer-file-name)))
-      (let ((repl-open? (get-buffer-window (cider-current-repl-buffer)))
-            (window (selected-window)))
-        (setq clojure-verify-major-mode nil)
-        (cond
-         ((eq 'clojurec-mode major-mode) (clojure-mode))
-         ((eq 'clojure-mode major-mode) (clojurescript-mode))
-         ((eq 'clojurescript-mode major-mode) (clojurec-mode)))
-        (setq-local flycheck-clj-kondo-lang "cljc")
-        (when (and repl-open? (not (eq 'clojurec-mode major-mode)))
-          (cider-switch-to-repl-buffer)
-          (select-window window)))
-    (message (concat "Cycle repl type called from non .cljc file" (buffer-file-name)))))
-
-(defun rs/cider-cycle-repl (&optional force-open?)
-  "Cycles between visible cider repls. No op if we aren't open, unless force-open? is truthy."
-  (interactive)
-  (let ((open-repl-buffer (car (seq-filter 'get-buffer-window (cider-repls))))
-        (window (selected-window)))
-    (cond
-     (open-repl-buffer
-      (dolist (buff (cider-repls))
-        (when (not (eq open-repl-buffer buff))
-          (cider--switch-to-repl-buffer buff)
-          (select-window window))))
-     (force-open? (cider-switch-to-repl-buffer)))))
-
-(defun rs/cider-clear-all-buffers ()
-  "Clear all cider buffers"
-  (interactive)
-  (let ((inhibit-read-only 't))
-    (dolist (repl (cider-repls))
-      (with-current-buffer repl
-        (cider-repl--clear-region (point-min) cider-repl-prompt-start-mark)
-        (cider-repl--clear-region cider-repl-output-start cider-repl-output-end)
-        (when (< (point) cider-repl-input-start-mark)
-          (goto-char cider-repl-input-start-mark))))))
-
 (defun kubeseal-region (beg end)
   "Encrypts the provided input using kubeseal and replaces it with the output"
   (interactive "*r")
@@ -261,57 +187,3 @@ information retrieved from files created by the keychain script."
                                 (current-buffer) t)
      (message "No active region"))))
 
-(defvar rs-cider-debug-sexp
-  nil
-  "The sexp currently used for debugging")
-
-(defvar rs-cider-debug-sexp-b-local
-  nil
-  "The sexp used locally in the buffer for debugging")
-
-(defvar rs-cider-debug-use-global
-  't
-  "Whether to use a global (or buffer local) variable for debug the sexp")
-
-(defun rs/cider-debug/set-sexp ()
-  "Sets the last sexp under the cursor to to the debug sexp"
-  (interactive)
-  (let ((last-sexp (evil-collection-cider-last-sexp #'cider-last-sexp)))
-    (if rs-cider-debug-use-global
-      (setq rs-cider-debug-sexp last-sexp)
-      (setq-local rs-cider-debug-sexp-b-local last-sexp))
-    (message (format "Debug sexp set to: %s" last-sexp))))
-
-(defun rs/cider-debug/eval-sexp (&optional output-to-current-buffer)
-  "Evaluates the debug function"
-  (interactive "P")
-  (let ((sexp (if rs-cider-debug-use-global
-                rs-cider-debug-sexp
-                rs-cider-debug-sexp-b-local)))
-    (cider-interactive-eval
-     sexp
-     (when output-to-current-buffer (cider-eval-print-handler))
-     (cider-last-sexp 'bounds)
-     (cider--nrepl-pr-request-map))))
-
-(defun rs/cider-debug/toggle-use-global ()
-  "Toggles whether we use a global variable for storing the debug expression"
-  (setq rs-cider-debug-use-global (not rs-cider-debug-use-global))
-  (message (format "Global debug is %s." (if rs-cider-debug-use-global "enabled" "disabled"))))
-
-(defun rs/cider/eval-last-sexp-up-to-point (&optional output-to-current-buffer)
-  "Similar to cider eval sexp up to point but doesn't require you to be on trailing white space"
-  (interactive "P")
-  (let* ((cursor-text (buffer-substring-no-properties (point) (1+ (point))))
-         (end-delim? (member cursor-text '("}" ")" "]")))
-         (beg-of-sexp (save-excursion (when end-delim? (backward-up-list)) (up-list) (backward-list) (point)))
-         (beg-delimiter (save-excursion (when end-delim? (backward-up-list)) (up-list) (backward-list) (char-after)))
-         (beg-set? (save-excursion (when end-delim? (backward-up-list)) (up-list) (backward-list) (char-before)))
-         (code (buffer-substring-no-properties beg-of-sexp (1+ (point))))
-         (code (if (= beg-set? ?#) (concat (list beg-set?) code) code))
-         (code (concat code (list (cider--matching-delimiter beg-delimiter)))))
-    (cider-interactive-eval code
-                            (when output-to-current-buffer
-                              (cider-eval-print-handler))
-                            (list beg-of-sexp (1+ (point)))
-                            (cider--nrepl-pr-request-map))))

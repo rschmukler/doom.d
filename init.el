@@ -143,6 +143,11 @@
       ; +wordnut         ; wordnet (wn) search
       ; +langtool)       ; a proofreader (grammar/style check) for Emacs
 
+       ;; Personal modules (in ~/.doom.d/modules/rs/). Each bundles its own
+       ;; packages.el + config.el (config + bindings) for a single domain.
+       :rs
+       clojure           ; clojure/cider config + helpers + keybindings
+
        :config
        ;; The default module set reasonable defaults for Emacs. It also provides
        ;; a Spacemacs-inspired keybinding scheme, a custom yasnippet library,

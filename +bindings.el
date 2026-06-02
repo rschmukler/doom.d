@@ -290,67 +290,6 @@
      :n "p" #'eval-last-sexp
      :n "b" #'eval-buffer))
 
- (:after clojure-mode
-   (:map clojure-mode-map
-     :leader
-     :n "\\" #'ivy-cider-apropos
-     :n "DEL" #'ivy-cider-browse-ns
-     (:desc "reload" :prefix "r"
-       :desc "Refresh user libraries" :n "l" #'rs/wing/sync-libs
-       :desc "Restart systemic" :n "r" #'rs/systemic/restart
-       :desc "Restart system at point" :n "R" #'rs/systemic/restart-last-sexp
-       :desc "Start systemic" :n "s" #'rs/systemic/start
-       :desc "Stop systemic" :n "S" #'rs/systemic/stop
-       :desc "Start system at point" :n "d" #'rs/systemic/start-last-sexp
-       :desc "Stop system at point" :n "D" #'rs/systemic/stop-last-sexp
-       :desc "Cycle clojure buffer type" :n "t" #'rs/cider-cycle-buffer-type
-       :desc "Cycle between cider repl buffers" :n "T" (λ!  (rs/cider-cycle-repl 't)))
-     :localleader
-     :n "'" #'cider-jack-in
-     :n "\"" #'cider-jack-in-clojurescript))
- ;; cider-mode
- (:after cider-mode
-   (:map cider-mode-map
-     :n "C-x C-y" #'cider-eval-last-sexp-and-yank
-     :n "C-x C-t" #'cider-tap-last-sexp
-     :n "C-x C-d" #'rs/cider-debug/set-sexp
-     :n "C-x C-r" #'rs/cider-debug/eval-sexp
-     :n "C-x C-p" #'rs/cider/eval-last-sexp-up-to-point
-     :leader
-     :desc "Lookup documentation at point" :n "d" #'cider-doc
-     :desc "Jump to definition at point" :n "l" #'cider-find-var
-     :desc "Show cider errors" :n "@"
-     (λ! (with-current-buffer cider-error-buffer (+popup/buffer)))
-     :localleader
-     :n "b" #'cider-eval-buffer
-     :n "B" (λ!  (rs/cider-cycle-repl 't))
-     :n "n" #'cider-repl-set-ns
-     :n "j" #'cider-find-var
-     :n "s" #'cider-browse-spec
-     :n "S" #'helm-cider-spec-ns
-     :n "l" #'cljr-move-to-let
-     :n "L" #'cljr-introduce-let
-     (:desc "docs" :prefix "d"
-       :desc "Browse Namespace" :n "n" #'cider-browse-ns
-       :desc "Browse Spec" :n "s" #'cider-browse-spec
-       :desc "Load ClojureDoc" :n "d" #'cider-clojuredocs)
-     :n "h" #'cider-doc
-     :n "c" #'rs/cider-clear-all-buffers
-     :n "C" #'rs/portal/clear
-     :n "i" #'cider-inspect-last-result
-     :n "e c" #'cider-eval-last-sexp-in-context
-     :n "e R" #'cider-eval-last-sexp-and-replace
-     :n "p" #'cider-eval-sexp-at-point
-     :n "f" #'cider-eval-defun-at-point
-     :n "t" #'cider-test-run-ns-tests
-     :n "T" #'cider-test-run-test)
-   (:after cider-browse-ns-mode
-     (:map cider-browse-ns-mode-map
-      :n "RET"       #'cider-browse-ns-operate-at-point))
-   (:map cider-repl-mode-map
-    :localleader
-    :n "B" (λ!  (rs/cider-cycle-repl 't))))
-
  (:after sly-mode
    (:map sly-mode-map
      :localleader
