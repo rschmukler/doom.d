@@ -149,6 +149,7 @@
        clojure           ; clojure/cider config + helpers + keybindings
        magit             ; magit/forge/difftastic/code-review + keybindings
        org               ; org/org-roam/vulpea config + keybindings
+       lisp-editing      ; rainbow-delimiters/aggressive-indent/lispyville
 
        :config
        ;; The default module set reasonable defaults for Emacs. It also provides

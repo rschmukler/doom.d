@@ -39,13 +39,6 @@
   (projectile-load-known-projects))
 
 
-(use-package! rainbow-delimiters
-  :hook
-  (clojure-mode . rainbow-delimiters-mode)
-  (elixir-mode . rainbow-delimiters-mode)
-  (haskell-mode . rainbow-delimiters-mode)
-  (racket-mode . rainbow-delimiters-mode))
-
 (add-hook! elixir-mode
   (flycheck-mode))
 
@@ -116,12 +109,6 @@
   :config
   (company-mode)
   (flycheck-mode))
-
-(use-package! aggressive-indent
-  :hook
-  ;; (clojure-mode . aggressive-indent-mode)
-  (hy-mode . aggressive-indent-mode)
-  (lisp-mode . aggressive-indent-mode))
 
 (after! typescript-mode
   (setq typescript-indent-level 2))
@@ -197,23 +184,6 @@
 
 (use-package! dhall-mode
   :mode "\\.dhall$")
-
-(use-package! lispyville
-  :hook ((emacs-lisp-mode clojure-mode hy-mode json-mode) . lispyville-mode)
-  :config
-  (lispyville-set-key-theme
-   '(operators
-     c-w
-     prettify
-     text-objects
-     atom-movement
-     commentary
-     wrap
-     slurp/barf-lispy
-     additional
-     additional-movement
-     additional-insert
-     escape)))
 
 (use-package! sqlformat
   :hook

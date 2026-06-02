@@ -1,7 +1,6 @@
 ;; -*- no-byte-compile: t; -*-
 ;;; private/rschmukler/packages.el
 
-(package! rainbow-delimiters)
 (package! flycheck)
 (package! flycheck-mix)
 (package! flycheck-credo)
@@ -21,8 +20,6 @@
 (package! yapfify)
 (package! company-lsp)
 (package! dockerfile-mode)
-(package! aggressive-indent)
-(package! lispyville)
 (package! reason-mode)
 (package! dhall-mode)
 (package! gif-screencast
