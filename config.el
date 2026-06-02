@@ -141,32 +141,12 @@
 (use-package! company-lsp
   :commands company-lsp)
 
-(use-package! lsp-haskell
-  :after haskell-mode
-  :config
-  (setq lsp-haskell-process-path-hie "hie-wrapper"))
-
 ;; (use-package! yapfify
 ;;   :hook
 ;;   (python-mode . yapf-mode)
 ;;   (before-save . (lambda ()
 ;;                    (when (eq major-mode 'python-mode)
 ;;                     (yapify-buffer)))))
-
-(use-package! haskell-mode
-  :mode "\\.hs$"
-  :config
-  ;; (setq haskell-font-lock-symbols t)
-  ;; (add-to-list ("<>" . "⊕"))
-  (setq haskell-font-lock-symbols-alist
-        (-reject
-         (lambda (elem)
-           (or))
-         ;; (string-equal "::" (car elem))))
-         haskell-font-lock-symbols-alist)))
-
-;; (use-package! flycheck-haskell
-;;   :hook (haskell-mode . flycheck-haskell-setup))
 
 (use-package! dhall-mode
   :mode "\\.dhall$")

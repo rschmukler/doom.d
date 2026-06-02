@@ -208,13 +208,6 @@
    (:map counsel-ag-map
      [backtab]  #'+ivy/wgrep-occur           ; search/replace on results
      "C-SPC"    #'counsel-git-grep-recenter)) ; preview
- ;; Haskell Mode
- (:after haskell-mode
-   :map haskell-mode-map
-   :localleader
-   :desc "Show IMenu Nodes"             "m" #'+lsp-ui-imenu
-   :desc "Apply LSP Action"             "a" #'lsp-ui-sideline-apply-code-actions)
-
  ;; Rust Mode
  (:after rustic
    (:map rustic-mode-map

@@ -151,6 +151,7 @@
        org               ; org/org-roam/vulpea config + keybindings
        lisp-editing      ; rainbow-delimiters/aggressive-indent/lispyville
        elixir            ; elixir flycheck (mix/credo) + alchemist + keybindings
+       haskell           ; haskell-mode/lsp-haskell + helpers + keybindings
 
        :config
        ;; The default module set reasonable defaults for Emacs. It also provides

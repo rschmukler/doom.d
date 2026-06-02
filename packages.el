@@ -9,12 +9,9 @@
 (package! rust-mode)
 (package! racer)
 (package! flycheck-rust)
-(package! intero)
+
 ;; (package! lsp-mode)
 ;; (package! lsp-ui)
-;; (package! lsp-haskell)
-(package! haskell-mode)
-(package! flycheck-haskell)
 (package! yapfify)
 (package! company-lsp)
 (package! dockerfile-mode)

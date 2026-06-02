@@ -71,52 +71,6 @@ current buffer directory."
                   (counsel-projectile-switch-project-action project-path)))
          (+tmux/run (concat "tt " project-name)))))))
 
-(defun urbint/format-haskell-source ()
-  (interactive)
-  (let ((output-buffer (generate-new-buffer "brittany-out"))
-        (config-file-path
-         (concat (string-trim
-                  (shell-command-to-string "stack path --project-root"))
-                 "/brittany.yaml")))
-    (when (= 0 (call-process-region
-                (point-min) (point-max)
-                "stack"
-                nil output-buffer nil
-                "exec" "--" "brittany" "--config-file" config-file-path))
-      (let ((pt (point))
-            (wst (window-start))
-            (formatted-source (with-current-buffer output-buffer
-                                (buffer-string))))
-        (erase-buffer)
-        (insert formatted-source)
-        (goto-char pt)
-        (set-window-start nil wst)))))
-
-(defun empire/haskell/module->test ()
-  "Jump from a module to a test."
-  (let ((filename (->> buffer-file-name
-                       (s-replace "/src/" "/test/")
-                       (s-replace ".hs" "Test.hs")
-                       find-file)))
-    (make-directory (f-dirname filename) t)
-    (find-file filename)))
-
-(defun empire/haskell/test->module ()
-  "Jump from a test to a module."
-  (let ((filename (->> buffer-file-name
-                       (s-replace "/test/" "/src/")
-                       (s-replace "Test.hs" ".hs")
-                       )))
-    (make-directory (f-dirname filename) t)
-    (find-file filename)))
-
-(defun empire/haskell/test<->module ()
-  "Toggle between test and module in Haskell."
-  (interactive)
-  (if (s-contains? "/src/" buffer-file-name)
-      (empire/haskell/module->test)
-    (empire/haskell/test->module)))
-
 (defmacro define-move-and-insert
     (name &rest body)
   `(defun ,name (count &optional vcount skip-empty-lines)
