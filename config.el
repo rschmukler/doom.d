@@ -6,16 +6,8 @@
 (setq whitespace-global-modes '(not org-mode whitespace-mode magit-mode))
 (global-whitespace-mode 1)
 
-(after! neotree
-  (setq doom-themes-neotree-file-icons 'icons)
-  (setq doom-themes-neotree-enable-file-icons 'icons)
-  (setq neo-theme 'icons))
-
 (after! company
   (setq company-idle-delay 0))
-
-(after! doom-themes
-  (setq doom-neotree-file-icons t))
 
 (after! ivy
   (setq ivy-re-builders-alist
@@ -153,6 +145,5 @@
    :desc "View MCPs" :n "M" #'eca-mcp-details))
 
 (load! "+functions")
-(load! "+theming")
 (load! "+bindings")
 (load! "+commands")

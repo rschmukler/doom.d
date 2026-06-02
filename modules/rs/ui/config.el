@@ -1,4 +1,21 @@
-;;; private/rschmukler/theming.el -*- lexical-binding: t; -*-
+;;; rs/ui/config.el -*- lexical-binding: t; -*-
+;;;
+;;; Self-contained ui module: neotree, doom-themes, theme/font/ligature
+;;; initialization, and neotree keybindings.
+
+;;
+;;; neotree
+
+(after! neotree
+  (setq doom-themes-neotree-file-icons 'icons)
+  (setq doom-themes-neotree-enable-file-icons 'icons)
+  (setq neo-theme 'icons))
+
+(after! doom-themes
+  (setq doom-neotree-file-icons t))
+
+;;
+;;; Theme / fonts / ligatures
 
 ;; (setq neo-theme 'icons)
 (doom-themes-neotree-config)
@@ -81,3 +98,31 @@
 (after! org-mode
   (set-face-attribute 'org-level-1 nil :background
                       (doom-darken (face-attribute 'default :background) 0.15)))
+
+;;
+;;; Keybindings
+
+(map!
+ (:after neotree
+   :map neotree-mode-map
+   :n "g"         nil
+   :n [tab]       #'neotree-quick-look
+   :n "RET"       #'neotree-enter
+   :n [backspace] #'evil-window-prev
+   :n "c"         #'neotree-create-node
+   :n "j"         #'neotree-next-line
+   :n "k"         #'neotree-previous-line
+   :n "n"         #'neotree-next-line
+   :n "p"         #'neotree-previous-line
+   :n "h"         #'+neotree/collapse-or-up
+   :n "l"         #'+neotree/expand-or-open
+   :n "J"         #'neotree-select-next-sibling-node
+   :n "K"         #'neotree-select-previous-sibling-node
+   :n "H"         #'neotree-select-up-node
+   :n "L"         #'neotree-select-down-node
+   :n "G"         #'evil-goto-line
+   :n "gg"        #'evil-goto-first-line
+   :n "v"         #'neotree-enter-vertical-split
+   :n "s"         #'neotree-enter-horizontal-split
+   :n "q"         #'neotree-hide
+   :n "R"         #'neotree-refresh))
