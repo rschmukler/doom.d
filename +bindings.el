@@ -122,12 +122,6 @@
      :desc "Toggle profiler"       :n "p" #'doom/toggle-profiler)
 
 
-   (:desc "org" :prefix "o"
-     :desc "Org Agenda"          :n  "a" #'org-agenda
-     :desc "Org Capture"         :n  "c" #'org-roam-capture
-     :desc "Find node"           :n  "o" #'vulpea-find
-     :desc "Show todos"          :n  "t" #'org-todo-list)
-
    (:desc "insert" :prefix "i"
      :desc "From kill-ring" :nv "p" #'counsel-yank-pop
      :desc "From snippet"   :nv "s" #'yas-insert-snippet)
@@ -156,10 +150,6 @@
      :desc "Switch to 7th workspace"  :n "6"   (λ! (+workspace/switch-to 6))
      :desc "Switch to 8th workspace"  :n "7"   (λ! (+workspace/switch-to 7))
      :desc "Switch to 9th workspace"  :n "8"   (λ! (+workspace/switch-to 8))))
-
- (:after org-agenda
-  :map org-agenda-mode-map
-  :desc "Open Link" :n "C-<return>" #'org-agenda-open-link)
 
  ;; ivy
  (:after ivy
@@ -260,14 +250,6 @@
      :localleader
      :n  "f"  #'sly-eval-defun))
 
- ;; org-mode
- (:after org-mode
-   (:map org-mode-map
-     :localleader
-     :n  "t"  #'org-todo
-     :n  "d"  #'org-deadline
-     :n  "s"  #'org-schedule))
-
  (:after julia-mode
    (:map julia-mode-map
      :localleader
@@ -308,10 +290,6 @@
       ;;   b) delete space-indented blocks intelligently
       ;;   c) do none of this when inside a string
       :i [remap newline] #'newline-and-indent
-
-      (:after org-mode
-        (:map org-mode-map
-          :i [remap doom/inflate-space-maybe] #'org-self-insert-command))
 
       ;; Make ESC quit all the things
       (:map (minibuffer-local-map

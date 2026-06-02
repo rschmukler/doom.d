@@ -29,7 +29,6 @@
   :recipe (:host gitlab :repo "ambrevar/emacs-gif-screencast"))
 (package! fennel-mode)
 (package! sqlformat)
-(package! vulpea :recipe (:host github :repo "d12frosted/vulpea"))
 (package! s)
 (package! fabb
   :recipe (:host github :repo "teknql/fabb" :build (:not compile)))
