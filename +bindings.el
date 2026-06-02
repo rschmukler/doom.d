@@ -122,19 +122,6 @@
      :desc "Toggle profiler"       :n "p" #'doom/toggle-profiler)
 
 
-   (:desc "git" :prefix "g"
-     :desc "Git status"        :n  "s" #'magit-status
-     :desc "Git blame"         :n  "b" #'magit-blame
-     :desc "Difftastic diff"   :n  "d" #'difftastic-magit-diff
-     :desc "Difftastic show"   :n  "D" #'difftastic-magit-show
-     :desc "Git timemachine branch" :n  "B" #'git-timemachine-switch-branch
-     :desc "Git time machine"  :n  "t" #'git-timemachine-toggle
-     :desc "Git revert hunk"   :n  "r" #'git-gutter:revert-hunk
-     :desc "List gists"        :n  "g" #'+gist:list
-     :desc "Link"              :v  "l" #'git-link
-     :desc "Next hunk"         :nv "]" #'git-gutter:next-hunk
-     :desc "Previous hunk"     :nv "[" #'git-gutter:previous-hunk)
-
    (:desc "org" :prefix "o"
      :desc "Org Agenda"          :n  "a" #'org-agenda
      :desc "Org Capture"         :n  "c" #'org-roam-capture
@@ -170,31 +157,9 @@
      :desc "Switch to 8th workspace"  :n "7"   (λ! (+workspace/switch-to 7))
      :desc "Switch to 9th workspace"  :n "8"   (λ! (+workspace/switch-to 8))))
 
- (:after magit
-   :map magit-blame-mode-map
-   :n "q" #'magit-blame-quit)
-
  (:after org-agenda
   :map org-agenda-mode-map
   :desc "Open Link" :n "C-<return>" #'org-agenda-open-link)
-
- (:after code-review
-  :map forge-pullreq-section-map
-  (:desc "Visit pull request" :g "RET" #'code-review-forge-pr-at-point)
-  (:desc "Browse pull request" :g "S-<return>" #'forge-browse-dwim)
-  :map forge-pullreq-list-mode-map
-  (:desc "Start a code review" :n "r" #'code-review-forge-pr-at-point)
-  (:desc "Start a code review" :n "RET" #'code-review-forge-pr-at-point)
-  :map code-review-mode-map
-  (:desc "Open code review transit panel" :n "r" #'code-review-transient-api))
-
- (:after git-timemachine
-  :map git-timemachine-mode-map
-  :n "C-j" #'git-timemachine-show-next-revision
-  :n "C-k" #'git-timemachine-show-previous-revision
-  :n "C-c" #'git-timemachine-show-commit
-  :n "C-b" #'git-timemachine-blame
-  :n "C-y" #'git-timemachine-kill-revision)
 
  ;; ivy
  (:after ivy

@@ -147,6 +147,7 @@
        ;; packages.el + config.el (config + bindings) for a single domain.
        :rs
        clojure           ; clojure/cider config + helpers + keybindings
+       magit             ; magit/forge/difftastic/code-review + keybindings
 
        :config
        ;; The default module set reasonable defaults for Emacs. It also provides
