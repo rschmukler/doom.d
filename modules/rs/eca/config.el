@@ -161,6 +161,92 @@ project (ECA session), eventually visiting them all and wrapping around."
       (setq whitespace-global-modes
             (delq 'eca-chat-mode whitespace-global-modes))))))
 
+;;; --- Colorize the workspace pop-up strip by ECA status ------------------
+;;
+;; Doom's workspace strip (the `[1] foo  [2] bar' line shown in the echo area
+;; on `+workspace/display' / a workspace switch) is built by
+;; `+workspace--tabline'.  We override it so each workspace name is tinted by
+;; the state of its ECA chats:
+;;   - orange (`warning') when a chat needs attention (approval/question), and
+;;   - green  (`success') when a chat is busy working (loading).
+;; Attention wins over working.  Because the strip is rebuilt on every display,
+;; status is simply recomputed on demand -- no caching or refresh hooks needed.
+;;
+;; We deliberately reuse the stock `warning'/`success' faces (set inline in
+;; `rs/eca--workspace-tabline') rather than declaring our own with `defface':
+;;   - `defface' is idempotent -- once a face exists, re-evaluating its form on
+;;     `doom/reload' (SPC h r r) does NOT update it, so face tweaks would only
+;;     take effect after a full Emacs restart.  Inlining keeps everything in the
+;;     `defun' (which reloads cleanly), and grabs only a foreground from
+;;     `warning'/`success' -- no background -- so the selection highlight still
+;;     wins the background on a selected+active tab.
+
+(defun rs/eca--session-workspace-name (session)
+  "Return the doom workspace name SESSION maps to, or nil.
+Prefer a workspace named after the session's project; fall back to a
+workspace that contains one of the session's chat buffers."
+  (when (and (bound-and-true-p persp-mode)
+             (fboundp '+workspace-list-names))
+    (let ((names (+workspace-list-names)))
+      (or (and (fboundp 'eca--session-project-name)
+               (car (member (eca--session-project-name session) names)))
+          (and (fboundp '+workspace-buffer-list)
+               (seq-find (lambda (name)
+                           (seq-some (lambda (buf)
+                                       (memq buf (ignore-errors (+workspace-buffer-list name))))
+                                     (rs/eca--session-chats session)))
+                         names))))))
+
+(defun rs/eca--workspace-status (name)
+  "Return aggregated ECA status for workspace NAME.
+Either `attention' (a chat awaits you), `working' (a chat is loading),
+or nil.  `attention' takes precedence over `working'."
+  (let (working)
+    (catch 'done
+      (dolist (session (rs/eca--sessions-ordered))
+        (when (equal name (rs/eca--session-workspace-name session))
+          (dolist (buf (rs/eca--session-chats session))
+            (when (buffer-live-p buf)
+              (cond
+               ((rs/eca--needs-attention-p buf) (throw 'done 'attention))
+               ((buffer-local-value 'eca-chat--chat-loading buf) (setq working t)))))))
+      (and working 'working))))
+
+(defun rs/eca--workspace-tabline (&optional names)
+  "Like `+workspace--tabline', but tint each workspace by ECA status.
+Drop-in `:override' for Doom's `+workspace--tabline' that keeps the
+selected-workspace highlight while layering an ECA status color on top."
+  (let ((names (or names (+workspace-list-names)))
+        (current-name (+workspace-current-name)))
+    (mapconcat
+     #'identity
+     (cl-loop for name in names
+              for i to (length names)
+              collect
+              (let* ((status (ignore-errors (rs/eca--workspace-status name)))
+                     (selected (equal current-name name))
+                     ;; Stock faces, used only for their foreground (no
+                     ;; background) so the selection highlight survives below.
+                     (status-face (pcase status
+                                    ('attention 'warning)
+                                    ('working 'success)))
+                     (base-face (if selected
+                                    '+workspace-tab-selected-face
+                                  '+workspace-tab-face))
+                     ;; Only the `[N]' index is tinted by ECA status; the name
+                     ;; keeps the regular face.  When selected, layer the status
+                     ;; color over the selection highlight (background).
+                     (num-face (cond
+                                ((and status-face selected)
+                                 `(:inherit (,status-face +workspace-tab-selected-face)))
+                                (status-face status-face)
+                                (t base-face))))
+                (concat (propertize (format " [%d] " (1+ i)) 'face num-face)
+                        (propertize (format "%s " name) 'face base-face))))
+     " ")))
+
+(advice-add '+workspace--tabline :override #'rs/eca--workspace-tabline)
+
 ;;; --- Package ------------------------------------------------------------
 
 (use-package! eca
