@@ -75,7 +75,9 @@
 (use-package! difftastic-status
   :after magit
   :config
-  (difftastic-status-mode +1))
+  (difftastic-status-mode +1)
+  (map! :map magit-mode-map
+        :n "~" #'difftastic-status-toggle-file-rendering))
 
 ;;
 ;;; Keybindings
