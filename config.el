@@ -6,6 +6,24 @@
 (setq whitespace-global-modes '(not org-mode whitespace-mode magit-mode))
 (global-whitespace-mode 1)
 
+(after! flycheck
+  ;; Stop the Emacs Lisp checker from littering `flycheck_*.el' copies next to
+  ;; the file being checked.  That checker is the only elisp one that uses
+  ;; `source-inplace' (so the byte-compiler could resolve relative requires);
+  ;; `emacs-lisp-checkdoc' already uses `source'.  Since Doom sets
+  ;; `flycheck-emacs-lisp-load-path' to `inherit', requires resolve via the
+  ;; running Emacs's `load-path' regardless of where the temp copy lives, so
+  ;; checking a copy in the *system* temp dir (`source') works identically --
+  ;; without dropping files in the repo.
+  ;;
+  ;; Wrapped in `eval' (as Doom does elsewhere) because the `setf' gv-expander
+  ;; for `flycheck-checker-get' isn't available until `flycheck' has loaded, but
+  ;; this form is macroexpanded when the file is loaded/compiled.
+  (eval '(setf (flycheck-checker-get 'emacs-lisp 'command)
+               (cl-substitute 'source 'source-inplace
+                              (flycheck-checker-get 'emacs-lisp 'command)))
+        t))
+
 (after! projectile
   (setq projectile-create-missing-test-files t)
   (projectile-register-project-type 'haskell-stack '("stack.yaml")
