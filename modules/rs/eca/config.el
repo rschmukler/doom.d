@@ -252,6 +252,20 @@ selected-workspace highlight while layering an ECA status color on top."
 (use-package! eca
   :config
   (setq eca-buttons-allow-mouse t)
+
+  ;; `eca-chat-mode' derives from `gfm-mode'/`markdown-mode', so entering it
+  ;; runs `markdown-mode-hook', which enables the `evil-markdown-mode' minor
+  ;; mode.  Minor-mode keymaps outrank the major mode's map, so
+  ;; `evil-markdown-mode-map' would shadow our `eca-chat-mode-map' bindings
+  ;; (e.g. `<tab>' -> `markdown-cycle' instead of toggling the section).  This
+  ;; hook runs *after* the parent `markdown-mode-hook', so turning the minor
+  ;; mode back off here reliably hands those keys back to `eca-chat-mode-map'.
+  (add-hook! 'eca-chat-mode-hook
+    (defun rs/eca--disable-evil-markdown-h ()
+      "Disable `evil-markdown-mode' so its keymap doesn't shadow chat keys."
+      (when (bound-and-true-p evil-markdown-mode)
+        (evil-markdown-mode -1))))
+
   (map!
    (:map doom-leader-map
     :leader
@@ -264,8 +278,8 @@ selected-workspace highlight while layering an ECA status color on top."
     :desc "Jump to attention (all projects)" :n "J" #'rs/eca-jump-to-attention)
    :after eca-chat
    :map eca-chat-mode-map
-   :desc "Toggle section" :n "<tab>" #'eca-chat-toggle-expandable-block
-   :desc "Toggle section" :n "TAB" #'eca-chat-toggle-expandable-block
+   :desc "Toggle section" :n "<tab>" #'eca-chat--key-pressed-tab
+   :desc "Toggle section" :n "TAB" #'eca-chat--key-pressed-tab
    :n "<return>" #'eca-chat--key-pressed-return
    :n "RET" #'eca-chat--key-pressed-return
    :i "<return>" #'eca-chat--key-pressed-return
