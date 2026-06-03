@@ -95,40 +95,6 @@
     :n "/" #'fabb-invoke-ivy
     :n "?" #'fabb-dispatch)))
 
-(use-package! eca
-  :config
-  (setq eca-buttons-allow-mouse t)
-  (add-to-list 'whitespace-global-modes 'eca-chat-mode t)
-  (map!
-   (:map doom-leader-map
-    :leader
-    :desc "Eca" :prefix "e"
-    :desc "Start session" :n "e" #'eca
-    :desc "Start session" :n "r" #'eca-restart
-    :desc "Rewrite" :n "w" #'eca-rewrite
-    :desc "Talk" :n "t" #'eca-chat-talk)
-   :after eca-chat
-   :map eca-chat-mode-map
-   :desc "Toggle section" :n "<tab>" #'eca-chat-toggle-expandable-block
-   :desc "Toggle section" :n "TAB" #'eca-chat-toggle-expandable-block
-   :n "<return>" #'eca-chat--key-pressed-return
-   :n "RET" #'eca-chat--key-pressed-return
-   :i "<return>" #'eca-chat--key-pressed-return
-   :i "RET" #'eca-chat--key-pressed-return
-   :localleader
-   :desc "Clear the chat" :n "c" #'eca-chat-clear
-   :desc "New chat" :n "n" #'eca-chat-new
-   :desc "Delete chat (server)" :n "d" #'eca-chat-delete
-   :desc "Rename chat" :n "r" #'eca-chat-rename
-   :desc "Reset chat" :n "R" #'eca-chat-reset
-   :desc "Accept all chat tool calls" :n "a" #'eca-chat-tool-call-accept-all
-   :desc "Accept all chat tool calls (and remember)" :n "A" #'eca-chat-tool-call-accept-all-and-remember
-   :desc "Select the model" :n "m" #'eca-chat-select-model
-   :desc "Select the agent" :n "b" #'eca-chat-select-agent
-   :desc "Select the variant" :n "v" #'eca-chat-select-variant
-   :desc "Cycle eca tab" :n "<tab>" #'tab-line-switch-to-next-tab
-   :desc "View MCPs" :n "M" #'eca-mcp-details))
-
 (load! "+functions")
 (load! "+bindings")
 (load! "+commands")

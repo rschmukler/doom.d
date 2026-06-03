@@ -156,6 +156,7 @@
        lsp               ; lsp-mode/lsp-ui core + per-language hooks
        ui                ; neotree + doom-themes/fonts/ligatures + keybindings
        completion        ; ivy/counsel + company tuning + keybindings
+       eca               ; editor code assistant config + jump-to-attention helpers
 
        :config
        ;; The default module set reasonable defaults for Emacs. It also provides
