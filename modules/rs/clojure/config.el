@@ -475,7 +475,6 @@ with the given LIMIT."
        :desc "Browse Namespace" :n "n" #'cider-browse-ns
        :desc "Browse Spec" :n "s" #'cider-browse-spec
        :desc "Load ClojureDoc" :n "d" #'cider-clojuredocs)
-     :n "h" #'cider-doc
      :n "c" #'rs/cider-clear-all-buffers
      :n "C" #'rs/portal/clear
      :n "i" #'cider-inspect-last-result
