@@ -247,6 +247,11 @@ selected-workspace highlight while layering an ECA status color on top."
 
 (advice-add '+workspace--tabline :override #'rs/eca--workspace-tabline)
 
+;;; --- Let this module own the chat keys ----------------------------------
+
+(when (boundp '+evil-collection-disabled-list)
+  (add-to-list '+evil-collection-disabled-list 'eca))
+
 ;;; --- Package ------------------------------------------------------------
 
 (use-package! eca
