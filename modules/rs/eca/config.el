@@ -17,6 +17,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'eca-util)
+  (require 'eca-diff)
   (require 'eca-chat))
 
 ;;; --- "Jump to chat needing attention" -----------------------------------
@@ -247,6 +248,105 @@ selected-workspace highlight while layering an ECA status color on top."
 
 (advice-add '+workspace--tabline :override #'rs/eca--workspace-tabline)
 
+;;; --- Inline difftastic rendering for file-change (edit_file) diffs ------
+;;
+;; ECA hands the client a plain *unified diff* string for every `fileChange'
+;; tool call and renders it inline as a ```diff code fence, colored only by
+;; markdown's `diff' fontification.  We swap that fence for a difftastic
+;; ("difft") rendering, inline, in the tool-call block itself -- no popup.
+;;
+;; How it works: `eca-diff-parse-unified-diff' already reconstructs the diff's
+;; old/new sides (the same data the ediff/smerge popups use).  We write those
+;; two sides to temp files (named after the real file so difft picks the right
+;; language) and run `difft' synchronously, then turn its ANSI output into
+;; propertized text via `difftastic--ansi-color-apply'.  The result is tagged
+;; with `eca-no-fontify' so ECA's custom `font-lock-fontify-region-function'
+;; (`eca-chat--fontify-region') skips it and markdown can't clobber difft's
+;; colors.
+;;
+;; This is a local, additive `:around' advice (we never patch upstream): it
+;; keeps whatever header (the clickable file-path button) the original built and
+;; replaces only the code fence, and it falls back to the stock ```diff block
+;; whenever difft is missing or rendering fails.
+;;
+;; Caveats:
+;;   - ECA's parser keeps only the diff's *hunk* lines, so -- exactly like the
+;;     existing ediff/smerge views -- difft sees only the changed hunks, not the
+;;     whole file (no surrounding context).
+;;   - `difft' is run synchronously; results are memoized per (path . diff) in
+;;     `rs/eca--difftastic-cache' so re-renders during streaming don't re-shell.
+
+(defvar rs/eca-difftastic-display "side-by-side"
+  "Value passed to difft's `--display' when rendering inline ECA diffs.
+One of \"inline\", \"side-by-side\" or \"side-by-side-show-both\".")
+
+(defvar rs/eca--difftastic-cache (make-hash-table :test 'equal)
+  "Memoizes rendered difftastic strings keyed by PATH + unified-diff text.")
+
+(defun rs/eca--difftastic-render-now (path diff)
+  "Render unified DIFF for PATH with difft; return a propertized string or nil.
+Returns nil (so callers fall back to the stock ```diff fence) when difft is
+unavailable or anything goes wrong."
+  (when (and (require 'difftastic nil t)
+             (boundp 'difftastic-executable)
+             (executable-find difftastic-executable))
+    (ignore-errors
+      (let* ((parsed (eca-diff-parse-unified-diff diff))
+             (orig   (or (plist-get parsed :original) ""))
+             (new    (or (plist-get parsed :new) ""))
+             ;; Name the temp files after the real file so difft infers the
+             ;; language (and shows a sensible heading) from the extension.
+             (base   (file-name-nondirectory (or path "file")))
+             (dir-a  (make-temp-file "eca-difft-a-" t))
+             (dir-b  (make-temp-file "eca-difft-b-" t))
+             (file-a (expand-file-name base dir-a))
+             (file-b (expand-file-name base dir-b))
+             (win    (get-buffer-window (current-buffer) t))
+             (width  (max 40 (- (if win (window-body-width win) 80) 2))))
+        (unwind-protect
+            (progn
+              (with-temp-file file-a (insert orig))
+              (with-temp-file file-b (insert new))
+              (let* ((args (difftastic--add-standard-args
+                            (list "--display" rs/eca-difftastic-display)
+                            width))
+                     (raw (with-temp-buffer
+                            (let ((process-environment
+                                   (difftastic--build-process-environment)))
+                              ;; difft exits non-zero when files differ; ignore
+                              ;; the status and just take its output.
+                              (apply #'process-file difftastic-executable nil t nil
+                                     (append args (list file-a file-b))))
+                            (buffer-string)))
+                     (rendered (string-trim-right
+                                (difftastic--ansi-color-apply raw))))
+                (unless (string-empty-p rendered)
+                  (propertize rendered 'eca-no-fontify t))))
+          (delete-directory dir-a t)
+          (delete-directory dir-b t))))))
+
+(defun rs/eca--difftastic-render (path diff)
+  "Memoized `rs/eca--difftastic-render-now' for PATH and unified DIFF."
+  (when (and (stringp diff) (not (string-empty-p diff)))
+    (let ((key (concat (or path "") "\0" diff)))
+      (or (gethash key rs/eca--difftastic-cache)
+          (when-let ((s (rs/eca--difftastic-render-now path diff)))
+            (puthash key s rs/eca--difftastic-cache))))))
+
+(defun rs/eca--file-change-diff-difftastic-a (orig-fn path diff roots)
+  "Render the ECA file-change DIFF inline with difftastic.
+`:around' advice for `eca-chat--file-change-diff': keeps the header (file-path
+button) the original produced and replaces only its ```diff fence with a
+difftastic rendering.  Falls back to ORIG-FN's output verbatim when difft is
+unavailable or rendering fails."
+  (let ((orig (funcall orig-fn path diff roots)))
+    (or (when-let* ((rendered (rs/eca--difftastic-render path diff))
+                    (idx (string-match "```diff\n" orig)))
+          ;; `substring' preserves the header's text properties (the clickable
+          ;; file-path button); append difft's rendering in place of the fence.
+          (concat (substring orig 0 idx) rendered))
+        orig)))
+
 ;;; --- Let this module own the chat keys ----------------------------------
 
 (when (boundp '+evil-collection-disabled-list)
@@ -257,6 +357,12 @@ selected-workspace highlight while layering an ECA status color on top."
 (use-package! eca
   :config
   (setq eca-buttons-allow-mouse t)
+
+  ;; Render file-change (edit_file) diffs inline with difftastic (see the
+  ;; "Inline difftastic rendering" section above).  Additive `:around' advice;
+  ;; falls back to the stock ```diff fence when difft is unavailable.
+  (advice-add 'eca-chat--file-change-diff
+              :around #'rs/eca--file-change-diff-difftastic-a)
 
   ;; `eca-chat-mode' derives from `gfm-mode'/`markdown-mode', so entering it
   ;; runs `markdown-mode-hook', which enables the `evil-markdown-mode' minor
