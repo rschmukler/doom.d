@@ -134,12 +134,12 @@ restores the whole window configuration captured here."
         :n "q"   #'difftastic-quit
         :n "Q"   #'difftastic-quit-all))
 
-(use-package! difftastic-status
+(use-package! magit-difftastic
   :after magit
   :config
-  (difftastic-status-mode +1)
+  (magit-difftastic-mode +1)
   (map! :map magit-mode-map
-        :n "~" #'difftastic-status-toggle-file-rendering))
+        :n "~" #'magit-difftastic-toggle-file-rendering))
 
 ;;
 ;;; Keybindings

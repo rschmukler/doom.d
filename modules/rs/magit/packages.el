@@ -12,7 +12,7 @@
   :recipe (:host github :repo "magit/forge"))
 (package! difftastic
   :recipe (:host github :repo "pkryger/difftastic.el" :files ("*.el")))
-(package! difftastic-status
-  ;; :recipe (:host github :repo "rschmukler/difftastic-status"))
-  :recipe (:local-repo "~/dev/rschmukler/difftastic-status")
+(package! magit-difftastic
+  ;; :recipe (:host github :repo "rschmukler/magit-difftastic"))
+  :recipe (:local-repo "/Users/ryan/dev/rschmukler/magit-difftastic" :type nil)
   )
