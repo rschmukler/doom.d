@@ -42,6 +42,14 @@ unanswered question.  A still-loading chat (⏳) is busy, not waiting."
               (or (eca-chat--has-pending-approvals-p)
                   eca-chat--pending-question)))))
 
+(defun rs/eca--idle-p (buffer)
+  "Non-nil when chat BUFFER is idle: open but not loading and not needing attention."
+  (and (buffer-live-p buffer)
+       (with-current-buffer buffer
+         (and (derived-mode-p 'eca-chat-mode)
+              (not (buffer-local-value 'eca-chat--chat-loading buffer))
+              (not (rs/eca--needs-attention-p buffer))))))
+
 (defun rs/eca--session-chats (session)
   "Return SESSION's chat buffers in tab order (oldest-first)."
   (reverse (eca-vals (eca--session-chats session))))
@@ -133,6 +141,65 @@ project (ECA session), eventually visiting them all and wrapping around."
       (if target
           (rs/eca--show-chat (car target) (cdr target))
         (eca-info "No ECA chat needs attention in any project")))))
+
+;;; --- "Jump to idle chat" ------------------------------------------------
+;;
+;; An "idle" chat is one that is open but not currently loading (⏳) and not
+;; waiting on the user (🚧).  These are the chats you can send a new message
+;; to immediately.
+;;
+;; Two entry points mirror the attention variants:
+;; - `rs/eca-jump-to-idle-in-project' cycles the current project's chat tabs.
+;; - `rs/eca-jump-to-idle' exhausts the current project's tabs first, then
+;;   moves on to the next project, eventually wrapping around.
+
+(defun rs/eca-jump-to-idle-in-project ()
+  "Jump to the next idle chat tab in the current project.
+An idle chat is open, not loading, and not waiting for your input.
+Cycles through the current ECA session's chat tabs, wrapping around."
+  (interactive)
+  (require 'eca-chat)
+  (let ((session (eca-session)))
+    (eca-assert-session-running session)
+    (let* ((chats (rs/eca--session-chats session))
+           (cur (current-buffer))
+           (pos (cl-position cur chats))
+           (ordered (if pos
+                        (append (nthcdr (1+ pos) chats)
+                                (cl-subseq chats 0 (1+ pos)))
+                      chats))
+           (target (seq-find #'rs/eca--idle-p ordered)))
+      (if target
+          (rs/eca--show-chat session target)
+        (eca-info "No idle ECA chat in this project")))))
+
+(defun rs/eca-jump-to-idle ()
+  "Jump to the next idle ECA chat, cycling across all projects.
+First exhausts the current project's chat tabs, then moves on to the next
+project (ECA session), eventually visiting them all and wrapping around."
+  (interactive)
+  (require 'eca-chat)
+  (let ((sessions (rs/eca--sessions-ordered)))
+    (unless sessions
+      (user-error "ECA must be running, no session found, start with `eca` command"))
+    (let* ((entries (cl-loop for session in sessions
+                             append (cl-loop for buf in (rs/eca--session-chats session)
+                                            collect (cons session buf))))
+           (idle (cl-remove-if-not
+                  (lambda (e) (rs/eca--idle-p (cdr e)))
+                  entries))
+           (cur (current-buffer))
+           (pos (or (cl-position cur entries :key #'cdr)
+                    (when-let* ((cs (ignore-errors (eca-session)))
+                                (idx (cl-position cs entries :key #'car)))
+                      (1- idx))))
+           (after (when pos
+                    (seq-find (lambda (e) (rs/eca--idle-p (cdr e)))
+                              (nthcdr (1+ pos) entries))))
+           (target (or after (car idle))))
+      (if target
+          (rs/eca--show-chat (car target) (cdr target))
+        (eca-info "No idle ECA chat in any project")))))
 
 ;;; --- Whitespace ---------------------------------------------------------
 ;;
@@ -386,7 +453,9 @@ unavailable or rendering fails."
     :desc "Rewrite" :n "w" #'eca-rewrite
     :desc "Talk" :n "t" #'eca-chat-talk
     :desc "Jump to attention (project)" :n "j" #'rs/eca-jump-to-attention-in-project
-    :desc "Jump to attention (all projects)" :n "J" #'rs/eca-jump-to-attention)
+    :desc "Jump to attention (all projects)" :n "J" #'rs/eca-jump-to-attention
+    :desc "Jump to idle chat (project)" :n "k" #'rs/eca-jump-to-idle-in-project
+    :desc "Jump to idle chat (all projects)" :n "K" #'rs/eca-jump-to-idle)
    :after eca-chat
    :map eca-chat-mode-map
    :desc "Toggle section" :n "<tab>" #'eca-chat--key-pressed-tab
