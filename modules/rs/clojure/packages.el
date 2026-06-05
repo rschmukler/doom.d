@@ -5,6 +5,9 @@
 ;; packages are provided by Doom's built-in `:lang clojure' module; this
 ;; module only layers on the extras we use.
 
+;; NOTE: clojure-mode is still required even with clojure-ts-mode because
+;; CIDER and clj-refactor depend on it for certain APIs.
+(package! clojure-ts-mode)
 (package! flycheck-clojure)
 (package! flycheck-clj-kondo)
 (package! helm-cider)

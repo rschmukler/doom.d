@@ -6,6 +6,7 @@
 (use-package! rainbow-delimiters
   :hook
   (clojure-mode . rainbow-delimiters-mode)
+  (clojure-ts-mode . rainbow-delimiters-mode)
   (elixir-mode . rainbow-delimiters-mode)
   (haskell-mode . rainbow-delimiters-mode)
   (racket-mode . rainbow-delimiters-mode))
@@ -17,7 +18,7 @@
   (lisp-mode . aggressive-indent-mode))
 
 (use-package! lispyville
-  :hook ((emacs-lisp-mode clojure-mode hy-mode json-mode) . lispyville-mode)
+  :hook ((emacs-lisp-mode clojure-mode clojure-ts-mode hy-mode json-mode) . lispyville-mode)
   :config
   (lispyville-set-key-theme
    '(operators

@@ -8,39 +8,6 @@
 ;;
 ;;; Helper commands
 
-(defun wpc/find-or-create-clojure-or-clojurescript-repl ()
-  (interactive)
-  (require 'projectile)
-  (with-current-buffer (current-buffer)
-    (let ((buffer-name   (wpc/buffer-name-for-clojure-mode major-mode))
-          (repl-function (wpc/repl-function-for-clojure-mode major-mode)))
-      (if (get-buffer buffer-name)
-          (switch-to-buffer buffer-name)
-        (funcall repl-function)))))
-
-(defun wpc/buffer-name-for-clojure-mode (mode)
-  (require 'projectile)
-  (let* ((project-name (projectile-project-name))
-         (cljs-name (concat "*cider-repl CLJS " project-name "*"))
-         (clj-name  (concat "*cider-repl " project-name "*")))
-    (cond ((eq mode 'clojurescript-mode) cljs-name)
-          ((eq mode 'clojure-mode) clj-name)
-          ((eq mode 'clojurec-mode) cljs-name))))
-
-(defun wpc/repl-function-for-clojure-mode (mode)
-  (require 'projectile)
-  (let ((project-name (projectile-project-name))
-        (cljs-fn #'cider-jack-in-clojurescript)
-        (clj-fn  #'cider-jack-in))
-    (cond ((eq mode 'clojurescript-mode) cljs-fn)
-          ((eq mode 'clojure-mode) clj-fn)
-          ((eq mode 'clojurec-mode) cljs-fn))))
-
-(defun wpc/reindent-defun-and-align-clojure-map ()
-  (interactive)
-  (call-interactively #'paredit-reindent-defun)
-  (call-interactively #'clojure-align))
-
 (defun rs/cider-cycle-buffer-type ()
   "Cycles between clojure, clojurescript, and clojurec repl types"
   (interactive)
@@ -49,11 +16,11 @@
             (window (selected-window)))
         (setq clojure-verify-major-mode nil)
         (cond
-         ((eq 'clojurec-mode major-mode) (clojure-mode))
-         ((eq 'clojure-mode major-mode) (clojurescript-mode))
-         ((eq 'clojurescript-mode major-mode) (clojurec-mode)))
+         ((memq major-mode '(clojurec-mode clojure-ts-clojurec-mode)) (clojure-ts-mode))
+         ((memq major-mode '(clojure-mode clojure-ts-mode)) (clojure-ts-clojurescript-mode))
+         ((memq major-mode '(clojurescript-mode clojure-ts-clojurescript-mode)) (clojure-ts-clojurec-mode)))
         (setq-local flycheck-clj-kondo-lang "cljc")
-        (when (and repl-open? (not (eq 'clojurec-mode major-mode)))
+        (when (and repl-open? (not (memq major-mode '(clojurec-mode clojure-ts-clojurec-mode))))
           (cider-switch-to-repl-buffer)
           (select-window window)))
     (message (concat "Cycle repl type called from non .cljc file" (buffer-file-name)))))
@@ -154,148 +121,14 @@
   )
 
 ;;
-;;; clojure-mode
+;;; clojure-mode (kept for CIDER/clj-refactor compatibility)
 
 (after! clojure-mode
-  (define-clojure-indent
-    (PUT 2)
-    (POST 2)
-    (GET 2)
-    (PATCH 2)
-    (DELETE 2)
-    (context 2)
-    (for-all 2)
-    (checking 3)
-    (>defn :defn)
-    (>defn- :defn)
-    (defnc :defn)
-    (defnc- :defn)
-    (defresolver :defn)
-    (fnc :defn)
-    (match 1)
-    (cond 0)
-    (case 1)
-    (describe 1)
-    (it 2)
-    (letfn '(0 ((:defn)) :form))
-    (fn-traced :defn)
-    (defn-traced :defn)
-    (assert-match 1)
-    (assert-exception 1)
-    (at-media 1)
-    (fiber-loop 1)
-    (agent-loop 1)
-    (js-await 1)
-    (fnk 1)
-    (fw 1)
-    (defc '(1 :defn (:defn))))
-  (add-to-list 'clojure-align-binding-forms "let-flow")
-  (setq clojure-indent-style 'align-arguments)
   (setq cider-default-cljs-repl 'shadow)
-  (put '>defn 'clojure-doc-string-elt 2)
-  (put '>defn- 'clojure-doc-string-elt 2)
-  (put 'defsys 'clojure-doc-string-elt 2)
-  (put 'defevent-db 'clojure-doc-string-elt 2)
-  (put 'defevent-fx 'clojure-doc-string-elt 2)
-  (put 'defsub 'clojure-doc-string-elt 2)
-  (put 'defhandler 'clojure-doc-string-elt 2)
-  (put 'defstream 'clojure-doc-string-elt 2)
-  (put 'defn-traced 'clojure-doc-string-elt 2)
-  (put 'defui 'clojure-doc-string-elt 2)
-  (put 'defui- 'clojure-doc-string-elt 2)
-  (put 'defnc 'clojure-doc-string-elt 2)
-  (put 'defnc- 'clojure-doc-string-elt 2)
-  (put 'defresolver 'clojure-doc-string-elt 2)
-  (put 'defc 'clojure-doc-string-elt 2)
-
-
-  (defun rs/ig/restart ()
-    "Calls Integrant halt followed by integrant go"
-    (interactive)
-    (cider-interactive-eval "(do (integrant.repl/halt) (integrant.repl/go))"))
-
-  (defun rs/systemic/restart ()
-    "Calls Integrant halt followed by integrant go"
-    (interactive)
-    (cider-interactive-eval "(systemic.core/restart!)"))
-
-  (defun rs/systemic/start ()
-    "Calls Integrant halt followed by integrant go"
-    (interactive)
-    (cider-interactive-eval "(systemic.core/start!)"))
-
-  (defun rs/systemic/stop ()
-    "Calls Integrant halt followed by integrant go"
-    (interactive)
-    (cider-interactive-eval "(systemic.core/stop!)"))
-
-  (defun rs/systemic/start-last-sexp ()
-    "Starts the systemic system at the last sexp"
-    (interactive)
-    (cider-interactive-eval (concat "(systemic.core/start! `" (cider-sexp-at-point) ")")))
-
-  (defun rs/systemic/stop-last-sexp ()
-    "Starts the systemic system at the last sexp"
-    (interactive)
-    (cider-interactive-eval (concat "(systemic.core/stop! `" (cider-sexp-at-point) ")")))
-
-  (defun rs/systemic/restart-last-sexp ()
-    "Restart the systemic system at the last sexp"
-    (interactive)
-    (cider-interactive-eval (concat "(systemic.core/restart! `" (cider-sexp-at-point) ")")))
-
-  (defvar rs/wing/alias nil)
-  (defvar rs/malli/wrap-cider-enabled nil)
-  (defun rs/wing/sync-libs ()
-    "Calls Integrant reset"
-    (interactive)
-    (if rs/wing/alias
-        (cider-interactive-eval (format "(wing.repl/sync-libs! :%s)" rs/wing/alias))
-        (cider-interactive-eval "(wing.repl/sync-libs!)")))
-
-  (defun rs/malli/try-start-dev ()
-    (interactive)
-    (cider-interactive-eval
-     "(let [last *1]
-        (try
-          (with-out-str
-            (let [start! (requiring-resolve 'malli.dev/start!)
-                  fail!  (requiring-resolve 'malli.core/-fail!)]
-              (start! {:report fail!})))
-          last
-          (catch java.io.FileNotFoundException _
-            last)
-          (catch Exception e
-            (throw e))))"))
-
-  (defun rs/malli/wrap-cider (origin-fn &rest args)
-    (let ((res (apply origin-fn args)))
-      (nth 2 (buffer-list))
-      (when (and (eq (cider-repl-type-for-buffer) 'clj) rs/malli/wrap-cider-enabled)
-        (rs/malli/try-start-dev))
-      res))
-
-  (advice-add 'cider-eval-buffer :around #'rs/malli/wrap-cider)
-  (advice-add 'cider-eval-last-sexp :around #'rs/malli/wrap-cider)
-  (advice-add 'cider-eval-defun-at-point :around #'rs/malli/wrap-cider)
-  (advice-add 'cider-eval-sexp-at-point :around #'rs/malli/wrap-cider)
-
-  (defun rs/portal/clear ()
-    (interactive)
-    (with-current-buffer (first (cider-repl-buffers 'clj 't))
-      (cider-nrepl-sync-request:eval "(portal.api/clear)")))
-
-  ; (advice-remove 'cider-eval-buffer #'rs/malli/wrap-cider)
-  ; (advice-remove 'cider-eval-last-sexp #'rs/malli/wrap-cider)
-  ; (advice-remove 'cider-eval-defun-at-point #'rs/malli/wrap-cider)
-  ; (advice-remove 'cider-eval-sexp-at-point #'rs/malli/wrap-cider)
-
-  (setq clojure-align-forms-automatically t)
   (setq cider-cljs-lein-repl
         "(do (require 'figwheel-sidecar.repl-api)
          (figwheel-sidecar.repl-api/start-figwheel!)
          (figwheel-sidecar.repl-api/cljs-repl))")
-
   (after! projectile
     (projectile-register-project-type
      'clojure-cli
@@ -339,6 +172,140 @@
           ("t" . "tick.alpha.api"))))
 
 ;;
+;;; Helper functions (REPL / system management)
+
+(defun rs/ig/restart ()
+  "Calls Integrant halt followed by integrant go"
+  (interactive)
+  (cider-interactive-eval "(do (integrant.repl/halt) (integrant.repl/go))"))
+
+(defun rs/systemic/restart ()
+  "Calls systemic restart"
+  (interactive)
+  (cider-interactive-eval "(systemic.core/restart!)"))
+
+(defun rs/systemic/start ()
+  "Calls systemic start"
+  (interactive)
+  (cider-interactive-eval "(systemic.core/start!)"))
+
+(defun rs/systemic/stop ()
+  "Calls systemic stop"
+  (interactive)
+  (cider-interactive-eval "(systemic.core/stop!)"))
+
+(defun rs/systemic/start-last-sexp ()
+  "Starts the systemic system at the last sexp"
+  (interactive)
+  (cider-interactive-eval (concat "(systemic.core/start! `" (cider-sexp-at-point) ")")))
+
+(defun rs/systemic/stop-last-sexp ()
+  "Stops the systemic system at the last sexp"
+  (interactive)
+  (cider-interactive-eval (concat "(systemic.core/stop! `" (cider-sexp-at-point) ")")))
+
+(defun rs/systemic/restart-last-sexp ()
+  "Restarts the systemic system at the last sexp"
+  (interactive)
+  (cider-interactive-eval (concat "(systemic.core/restart! `" (cider-sexp-at-point) ")")))
+
+(defvar rs/wing/alias nil)
+(defvar rs/malli/wrap-cider-enabled nil)
+
+(defun rs/wing/sync-libs ()
+  "Calls wing sync-libs"
+  (interactive)
+  (if rs/wing/alias
+      (cider-interactive-eval (format "(wing.repl/sync-libs! :%s)" rs/wing/alias))
+    (cider-interactive-eval "(wing.repl/sync-libs!)")))
+
+(defun rs/malli/try-start-dev ()
+  (interactive)
+  (cider-interactive-eval
+   "(let [last *1]
+      (try
+        (with-out-str
+          (let [start! (requiring-resolve 'malli.dev/start!)
+                fail!  (requiring-resolve 'malli.core/-fail!)]
+            (start! {:report fail!})))
+        last
+        (catch java.io.FileNotFoundException _
+          last)
+        (catch Exception e
+          (throw e))))"))
+
+(defun rs/malli/wrap-cider (origin-fn &rest args)
+  (let ((res (apply origin-fn args)))
+    (when (and (eq (cider-repl-type-for-buffer) 'clj) rs/malli/wrap-cider-enabled)
+      (rs/malli/try-start-dev))
+    res))
+
+(defun rs/portal/clear ()
+  (interactive)
+  (with-current-buffer (first (cider-repl-buffers 'clj 't))
+    (cider-nrepl-sync-request:eval "(portal.api/clear)")))
+
+;;
+;;; clojure-ts-mode
+(after! clojure-ts-mode
+  ;; Indentation rules - translated from the legacy define-clojure-indent block.
+  ;; Format: ("symbol" (rule-type n) ...) using :block and :inner per cljfmt.
+  ;;
+  ;; :block N  => N args precede the body (like defn has 1 name arg, then body)
+  ;; :inner N  => body forms at depth N are indented by 2 spaces (defn-like)
+  ;;
+  ;; NOTE: `letfn` '(0 ((:defn)) :form) cannot be fully expressed in
+  ;; clojure-ts-mode's two-rule system — the nested :defn backtracking for
+  ;; the binding vector fns is handled by clojure-ts-mode's built-in letfn
+  ;; rule already. The outer (:block 0) (:inner 1) approximation is close.
+  ;;
+  ;; NOTE: `defc` '(1 :defn (:defn)) similarly can't express the third
+  ;; positional rule; (:block 1) (:inner 0) covers the common case.
+  (setopt clojure-ts-semantic-indent-rules
+          '(("PUT"            (:block 2))
+            ("POST"           (:block 2))
+            ("GET"            (:block 2))
+            ("PATCH"          (:block 2))
+            ("DELETE"         (:block 2))
+            ("context"        (:block 2))
+            ("for-all"        (:block 2))
+            ("checking"       (:block 3))
+            (">defn"          (:inner 0))
+            (">defn-"         (:inner 0))
+            ("defnc"          (:inner 0))
+            ("defnc-"         (:inner 0))
+            ("defresolver"    (:inner 0))
+            ("fnc"            (:inner 0))
+            ("match"          (:block 1))
+            ("cond"           (:block 0))
+            ("case"           (:block 1))
+            ("describe"       (:block 1))
+            ("it"             (:block 2))
+            ("letfn"          (:block 0) (:inner 1))  ;; see note above
+            ("fn-traced"      (:inner 0))
+            ("defn-traced"    (:inner 0))
+            ("assert-match"   (:block 1))
+            ("assert-exception" (:block 1))
+            ("at-media"       (:block 1))
+            ("fiber-loop"     (:block 1))
+            ("agent-loop"     (:block 1))
+            ("js-await"       (:block 1))
+            ("fnk"            (:block 1))
+            ("fw"             (:block 1))
+            ("defc"           (:block 1) (:inner 0))))  ;; see note above
+
+  ;; Alignment
+  (add-to-list 'clojure-ts-align-binding-forms "let-flow")
+  (setopt clojure-ts-align-forms-automatically t)
+
+  ;; Highlight these defn-like forms with their name + docstring.
+  ;; clojure-ts-extra-def-forms replaces the old put ... 'clojure-doc-string-elt calls.
+  (dolist (form '(">defn" ">defn-" "defsys" "defevent-db" "defevent-fx"
+                  "defsub" "defhandler" "defstream" "defn-traced"
+                  "defui" "defui-" "defnc" "defnc-" "defresolver" "defc"))
+    (add-to-list 'clojure-ts-extra-def-forms form)))
+
+;;
 ;;; cider
 
 (after! cider
@@ -348,6 +315,14 @@
   (setq cider-show-error-buffer nil)
   (set-popup-rule!
     '(("^\\*cider-error" :select t :size 0.5)))
+  (advice-add 'cider-eval-buffer :around #'rs/malli/wrap-cider)
+  (advice-add 'cider-eval-last-sexp :around #'rs/malli/wrap-cider)
+  (advice-add 'cider-eval-defun-at-point :around #'rs/malli/wrap-cider)
+  (advice-add 'cider-eval-sexp-at-point :around #'rs/malli/wrap-cider)
+  ; (advice-remove 'cider-eval-buffer #'rs/malli/wrap-cider)
+  ; (advice-remove 'cider-eval-last-sexp #'rs/malli/wrap-cider)
+  ; (advice-remove 'cider-eval-defun-at-point #'rs/malli/wrap-cider)
+  ; (advice-remove 'cider-eval-sexp-at-point #'rs/malli/wrap-cider)
 
 
   ;; Overwrite this cider function for custom focus modes
@@ -357,9 +332,9 @@ An unused reader conditional expression is an expression for a platform
 that does not match the CIDER connection for the buffer.  Search is done
 with the given LIMIT."
   (let ((repl-types (cond
-                     ((eq major-mode 'clojure-mode)
+                     ((memq major-mode '(clojure-mode clojure-ts-mode))
                       '("clj"))
-                     ((eq major-mode 'clojurescript-mode)
+                     ((memq major-mode '(clojurescript-mode clojure-ts-clojurescript-mode))
                       '("cljs"))
                      ('t
                       (seq-uniq (seq-map
@@ -431,8 +406,8 @@ with the given LIMIT."
 ;;; Keybindings
 
 (map!
- (:after clojure-mode
-   (:map clojure-mode-map
+ (:after clojure-ts-mode
+   (:map (clojure-ts-mode-map clojure-ts-clojurescript-mode-map clojure-ts-clojurec-mode-map)
      :leader
      :n "\\" #'ivy-cider-apropos
      :n "DEL" #'ivy-cider-browse-ns
