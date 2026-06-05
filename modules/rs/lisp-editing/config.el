@@ -47,25 +47,30 @@
   ;; marker to track the moved form's new position.
 
   (defun rs/lispy--find-next-sexp (pos)
-    "Return bounds of the first sexp at or after POS, nil if at a closing delimiter."
+    "Return bounds of the first sexp at or after POS, nil if at a closing delimiter.
+Binds `forward-sexp-function' to nil so treesit cannot return wrong bounds
+\(e.g. navigating past a string literal to a different sibling)."
     (save-excursion
       (goto-char pos)
       (skip-chars-forward " \t\n")
       (and (not (eobp))
            (not (looking-at "[])}]"))
-           (ignore-errors (bounds-of-thing-at-point 'sexp)))))
+           (let ((forward-sexp-function nil))
+             (ignore-errors (bounds-of-thing-at-point 'sexp))))))
 
   (defun rs/lispy--find-prev-sexp (pos)
-    "Return bounds of the sexp ending just before POS
-    nil if at an opening delimiter."
+    "Return bounds of the sexp ending just before POS, nil if at an opening delimiter.
+Binds `forward-sexp-function' to nil so treesit's backward-sexp cannot
+navigate to the wrong sibling (e.g. jumping past a string to a symbol)."
     (save-excursion
       (goto-char pos)
       (skip-chars-backward " \t\n")
       (and (not (bobp))
            (not (looking-back "[[({]" (1- (point))))
-           (ignore-errors
-             (backward-sexp)
-             (bounds-of-thing-at-point 'sexp)))))
+           (let ((forward-sexp-function nil))
+             (ignore-errors
+               (backward-sexp)
+               (bounds-of-thing-at-point 'sexp))))))
 
   (defun rs/lispy--swap-regions-goto-bnd1 (bnd1 bnd2)
     "Swap text in BND1 and BND2, then move point to ( of BND1 in its new position.
@@ -86,19 +91,57 @@
         (delete-region (car earlier) (cdr earlier))
         (insert str-l))
       (goto-char (marker-position marker))
-      (set-marker marker nil)))
+      (set-marker marker nil)
+      ;; Buffer modifications (delete-region + insert) displace doom's
+      ;; window-local hl-line overlay markers, leaving them on the wrong line.
+      ;; Force hl-line to reposition its overlays to the current line.
+      (when (fboundp 'hl-line-highlight)
+        (hl-line-highlight))))
+
+  (defun rs/lispyville--containing-form-bounds ()
+    "Return bounds of the innermost containing list, or nil."
+    (let ((forward-sexp-function nil))
+      (save-excursion
+        (ignore-errors
+          (up-list)
+          (backward-list)
+          (bounds-of-thing-at-point 'sexp)))))
 
   (defun rs/lispyville--drag-fix (orig-fn func count)
-    (if (and (not (region-active-p))
-             (looking-at lispy-left))
-        (let* ((bnd1 (lispy--bounds-dwim))
-               (bnd2 (if (eq func #'lispy-move-down)
+    ;; For region-active (visual-state drag) fall through — that path works.
+    (if (region-active-p)
+        (funcall orig-fn func count)
+      ;; Use syntax-table sexp navigation (forward-sexp-function nil) to find
+      ;; the sexp at point and its sibling, bypassing broken lispy internals.
+      (let* ((bnd1 (let ((forward-sexp-function nil))
+                     (ignore-errors (bounds-of-thing-at-point 'sexp))))
+             ;; Validate point is on/inside the sexp, not floating in whitespace
+             (bnd1 (when (and bnd1
+                              (<= (car bnd1) (point))
+                              (<  (point) (cdr bnd1)))
+                     bnd1))
+             (bnd2 (when bnd1
+                     (if (eq func #'lispy-move-down)
                          (rs/lispy--find-next-sexp (cdr bnd1))
-                       (rs/lispy--find-prev-sexp  (car bnd1)))))
-          (if bnd2
-              (rs/lispy--swap-regions-goto-bnd1 bnd1 bnd2)
-            ;; No sibling found — no-op, fall through to original
-            (funcall orig-fn func count)))
-      (funcall orig-fn func count)))
+                       (rs/lispy--find-prev-sexp  (car bnd1))))))
+        (cond
+         ;; Found a sibling — swap directly
+         (bnd2
+          (rs/lispy--swap-regions-goto-bnd1 bnd1 bnd2))
+         ;; No sibling for the atom at point (e.g. cursor on first/last element
+         ;; of a form) — escalate to the containing form and drag that instead
+         (bnd1
+          (let* ((container (rs/lispyville--containing-form-bounds))
+                 (container-bnd2
+                  (when container
+                    (if (eq func #'lispy-move-down)
+                        (rs/lispy--find-next-sexp (cdr container))
+                      (rs/lispy--find-prev-sexp  (car container))))))
+            (if container-bnd2
+                (rs/lispy--swap-regions-goto-bnd1 container container-bnd2)
+              (funcall orig-fn func count))))
+         ;; No sexp at point at all
+         (t
+          (funcall orig-fn func count))))))
 
   (advice-add 'lispyville--drag :around #'rs/lispyville--drag-fix))
