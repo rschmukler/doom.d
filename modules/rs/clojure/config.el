@@ -292,18 +292,20 @@
             ("js-await"       (:block 1))
             ("fnk"            (:block 1))
             ("fw"             (:block 1))
-            ("defc"           (:block 1) (:inner 0))))  ;; see note above
+            ("defc"           (:block 1) (:inner 0))   ;; see note above
+            ("defsys"         (:inner 0))))
 
   ;; Alignment
   (add-to-list 'clojure-ts-align-binding-forms "let-flow")
   (setopt clojure-ts-align-forms-automatically t)
 
   ;; Highlight these defn-like forms with their name + docstring.
-  ;; clojure-ts-extra-def-forms replaces the old put ... 'clojure-doc-string-elt calls.
-  (dolist (form '(">defn" ">defn-" "defsys" "defevent-db" "defevent-fx"
-                  "defsub" "defhandler" "defstream" "defn-traced"
-                  "defui" "defui-" "defnc" "defnc-" "defresolver" "defc"))
-    (add-to-list 'clojure-ts-extra-def-forms form)))
+  ;; Must use setopt (not add-to-list) so the :set function fires and
+  ;; propagates the new font-lock queries to all open clojure-ts-mode buffers.
+  (setopt clojure-ts-extra-def-forms
+          '(">defn" ">defn-" "defsys" "defevent-db" "defevent-fx"
+            "defsub" "defhandler" "defstream" "defn-traced"
+            "defui" "defui-" "defnc" "defnc-" "defresolver" "defc")))
 
 ;;
 ;;; cider
