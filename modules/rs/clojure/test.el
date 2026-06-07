@@ -167,3 +167,62 @@ tests exercise the same conditions as a real buffer."
       "(multi"
     (lispyville-drag-backward 1)
     (should (rs/buf-before-p "(multi" "(simple)"))))
+
+;;
+;;; Comment-block drag — these froze Emacs (max-lisp-eval-depth in lispy's
+;;; comment handling) or silently corrupted the buffer before the fix.
+
+(defvar rs/test-comment-block
+  ";; --------------\n;; Foooooooo\n;; --------------\n"
+  "A multi-line `;' comment block used by the comment drag tests.")
+
+(ert-deftest rs/drag-fwd-form-across-comment ()
+  "Drag a form forward across a comment block: must not freeze or lose text."
+  (rs/with-clojure-ts-buffer
+      (concat "(do\n  (foo)\n" rs/test-comment-block "  (a 1))\n")
+      "(foo"
+    (lispyville-drag-forward 1)
+    ;; nothing lost
+    (should (string-match-p "(foo)" (buffer-string)))
+    (should (string-match-p "(a 1)" (buffer-string)))
+    (should (string-match-p ";; Foooooooo" (buffer-string)))
+    ;; (foo) now sits after the whole comment block
+    (should (rs/buf-before-p ";; Foooooooo" "(foo)"))
+    (should (rs/buf-before-p "(foo)" "(a 1)"))))
+
+(ert-deftest rs/drag-bwd-form-across-comment ()
+  "Drag a form backward across a comment block: must not freeze or lose text."
+  (rs/with-clojure-ts-buffer
+      (concat "(do\n  (a 1)\n" rs/test-comment-block "  (foo))\n")
+      "(foo"
+    (lispyville-drag-backward 1)
+    (should (string-match-p "(foo)" (buffer-string)))
+    (should (string-match-p "(a 1)" (buffer-string)))
+    (should (string-match-p ";; Foooooooo" (buffer-string)))
+    ;; (foo) now sits before the comment block
+    (should (rs/buf-before-p "(a 1)" "(foo)"))
+    (should (rs/buf-before-p "(foo)" ";; Foooooooo"))))
+
+(ert-deftest rs/drag-cursor-on-comment-dashes ()
+  "Cursor on a comment line drags the whole block, not an inner token."
+  (rs/with-clojure-ts-buffer
+      (concat rs/test-comment-block "(foo)\n")
+      ";; ---"
+    (lispyville-drag-forward 1)
+    ;; whole block preserved and moved below (foo)
+    (should (string-match-p ";; --------------\n;; Foooooooo\n;; --------------"
+                            (buffer-string)))
+    (should (rs/buf-before-p "(foo)" ";; Foooooooo"))))
+
+(ert-deftest rs/drag-cursor-on-comment-word ()
+  "Cursor on a word *inside* a comment drags the block, never the word.
+Previously the inner symbol's bounds nested inside the block and the swap
+overlapped, corrupting the buffer."
+  (rs/with-clojure-ts-buffer
+      (concat rs/test-comment-block "(foo)\n")
+      "Foooo"
+    (lispyville-drag-forward 1)
+    ;; the comment word must stay intact inside its line
+    (should (string-match-p ";; Foooooooo" (buffer-string)))
+    (should (string-match-p "(foo)" (buffer-string)))
+    (should (rs/buf-before-p "(foo)" ";; Foooooooo"))))

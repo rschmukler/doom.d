@@ -45,32 +45,77 @@
   ;; Fix: bypass lispy internals entirely for list/vector forms. Find the
   ;; adjacent sibling directly and swap the two regions ourselves using a
   ;; marker to track the moved form's new position.
+  ;;
+  ;; Comments are a second broken case. `bounds-of-thing-at-point' returns nil
+  ;; on a `;' line and lispy's own comment handling (lispy--bounds-comment ->
+  ;; comment-beginning) either errors (`wrong-type-argument stringp nil') or
+  ;; recurses until `max-lisp-eval-depth' — the latter manifests as a frozen
+  ;; Emacs when dragging a form across a comment block. We avoid lispy entirely
+  ;; by treating a contiguous run of whole-line `;' comments as one draggable
+  ;; unit and swapping it like any other sexp.
+
+  (defun rs/lispy--comment-line-p ()
+    "Non-nil if the current line is a whole-line `;' comment."
+    (save-excursion
+      (beginning-of-line)
+      (skip-chars-forward " \t")
+      (and (eq (char-after) ?\;)
+           (not (eolp)))))
+
+  (defun rs/lispy--comment-block-bounds (pos)
+    "Return (START . END) of the contiguous comment block at POS, or nil.
+A block is a run of adjacent whole-line `;' comments. START is the first
+`;' of the block's first line; END is the end of the block's last line
+\(trailing newline excluded), so the bounds behave like a sexp region."
+    (save-excursion
+      (goto-char pos)
+      (when (rs/lispy--comment-line-p)
+        ;; Walk up to the first comment line of the block.
+        (while (and (zerop (forward-line -1))
+                    (rs/lispy--comment-line-p)))
+        (unless (rs/lispy--comment-line-p)
+          (forward-line 1))
+        (skip-chars-forward " \t")
+        (let ((start (point)))
+          ;; Walk down to the last comment line of the block.
+          (goto-char pos)
+          (while (and (zerop (forward-line 1))
+                      (rs/lispy--comment-line-p)))
+          (forward-line -1)
+          (end-of-line)
+          (cons start (point))))))
 
   (defun rs/lispy--find-next-sexp (pos)
     "Return bounds of the first sexp at or after POS, nil if at a closing delimiter.
-Binds `forward-sexp-function' to nil so treesit cannot return wrong bounds
-\(e.g. navigating past a string literal to a different sibling)."
+A contiguous comment block counts as a sexp. Binds `forward-sexp-function'
+to nil so treesit cannot return wrong bounds (e.g. navigating past a string
+literal to a different sibling)."
     (save-excursion
       (goto-char pos)
       (skip-chars-forward " \t\n")
-      (and (not (eobp))
-           (not (looking-at "[])}]"))
-           (let ((forward-sexp-function nil))
-             (ignore-errors (bounds-of-thing-at-point 'sexp))))))
+      (cond
+       ((eobp) nil)
+       ((rs/lispy--comment-line-p) (rs/lispy--comment-block-bounds (point)))
+       ((looking-at "[])}]") nil)
+       (t (let ((forward-sexp-function nil))
+            (ignore-errors (bounds-of-thing-at-point 'sexp)))))))
 
   (defun rs/lispy--find-prev-sexp (pos)
-    "Return bounds of the sexp ending just before POS, nil if at an opening delimiter.
-Binds `forward-sexp-function' to nil so treesit's backward-sexp cannot
-navigate to the wrong sibling (e.g. jumping past a string to a symbol)."
+    "Return bounds of the sexp ending just before POS, or nil at an open delimiter.
+A contiguous comment block counts as a sexp. Binds `forward-sexp-function'
+to nil so treesit's backward-sexp cannot navigate to the wrong sibling
+\(e.g. jumping past a string to a symbol)."
     (save-excursion
       (goto-char pos)
       (skip-chars-backward " \t\n")
-      (and (not (bobp))
-           (not (looking-back "[[({]" (1- (point))))
-           (let ((forward-sexp-function nil))
-             (ignore-errors
-               (backward-sexp)
-               (bounds-of-thing-at-point 'sexp))))))
+      (cond
+       ((bobp) nil)
+       ((looking-back "[[({]" (1- (point))) nil)
+       ((rs/lispy--comment-line-p) (rs/lispy--comment-block-bounds (point)))
+       (t (let ((forward-sexp-function nil))
+            (ignore-errors
+              (backward-sexp)
+              (bounds-of-thing-at-point 'sexp)))))))
 
   (defun rs/lispy--swap-regions-goto-bnd1 (bnd1 bnd2)
     "Swap text in BND1 and BND2, then move point to ( of BND1 in its new position.
@@ -113,12 +158,23 @@ navigate to the wrong sibling (e.g. jumping past a string to a symbol)."
         (funcall orig-fn func count)
       ;; Use syntax-table sexp navigation (forward-sexp-function nil) to find
       ;; the sexp at point and its sibling, bypassing broken lispy internals.
-      (let* ((bnd1 (let ((forward-sexp-function nil))
-                     (ignore-errors (bounds-of-thing-at-point 'sexp))))
+      (let* (;; A cursor anywhere on a comment line must drag the whole comment
+             ;; block — never an inner token. Check this FIRST: inside a comment
+             ;; `bounds-of-thing-at-point' happily returns the word at point
+             ;; (e.g. "Foooooooo"), which is nested inside the block and would
+             ;; make the swap overlap and corrupt the buffer. It also dodges
+             ;; lispy's comment handling, which freezes/errors here.
+             (on-comment (rs/lispy--comment-line-p))
+             (bnd1 (if on-comment
+                       (rs/lispy--comment-block-bounds (point))
+                     (let ((forward-sexp-function nil))
+                       (ignore-errors (bounds-of-thing-at-point 'sexp)))))
              ;; Validate point is on/inside the sexp, not floating in whitespace
+             ;; (comment-block bounds already contain point, so skip the check).
              (bnd1 (when (and bnd1
-                              (<= (car bnd1) (point))
-                              (<  (point) (cdr bnd1)))
+                              (or on-comment
+                                  (and (<= (car bnd1) (point))
+                                       (<  (point) (cdr bnd1)))))
                      bnd1))
              (bnd2 (when bnd1
                      (if (eq func #'lispy-move-down)
@@ -128,6 +184,9 @@ navigate to the wrong sibling (e.g. jumping past a string to a symbol)."
          ;; Found a sibling — swap directly
          (bnd2
           (rs/lispy--swap-regions-goto-bnd1 bnd1 bnd2))
+         ;; A comment block with no sibling to swap with — nothing to do.
+         ;; Never fall through to lispy here: it freezes on comments.
+         (on-comment nil)
          ;; No sibling for the atom at point (e.g. cursor on first/last element
          ;; of a form) — escalate to the containing form and drag that instead
          (bnd1
