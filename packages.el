@@ -20,6 +20,5 @@
   :recipe (:host github :repo "teknql/fabb" :build (:not compile)))
 (package! copilot
   :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
-(package! direnv)
 (package! ultra-scroll
   :recipe (:host github :repo "jdtsmith/ultra-scroll"))

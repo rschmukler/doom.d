@@ -34,6 +34,9 @@
   (projectile-load-known-projects))
 
 
+;; Enable envrc earlier (Doom waits for `doom-first-file') so non-file buffers like magit get sourced.
+(add-hook 'doom-first-buffer-hook #'envrc-global-mode)
+
 (add-hook! elm-mode
   (flycheck-mode))
 
