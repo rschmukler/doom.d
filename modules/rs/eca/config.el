@@ -315,6 +315,29 @@ selected-workspace highlight while layering an ECA status color on top."
 
 (advice-add '+workspace--tabline :override #'rs/eca--workspace-tabline)
 
+;;; --- Stop a workspace's ECA server when its tab is closed ---------------
+;;
+;; `eca-stop' acts on `(eca-session)', which resolves from the current buffer
+;; via the buffer-local `eca--session-id-cache'.  Seed that cache in a throwaway
+;; buffer to aim `eca-stop' at the session belonging to the closing workspace.
+
+(defun rs/eca--stop-session-for-workspace-h (persp &rest _)
+  "Stop the ECA session bound to the workspace PERSP being killed."
+  (when (and persp (fboundp 'persp-name))
+    (let ((name (persp-name persp)))
+      (dolist (session (rs/eca--sessions-ordered))
+        (when (equal name (rs/eca--session-workspace-name session))
+          (condition-case err
+              (progn
+                (require 'eca)
+                (with-temp-buffer
+                  (setq-local eca--session-id-cache (eca--session-id session))
+                  (eca-stop)))
+            (error
+             (message "rs/eca: failed to stop ECA server for %s: %S" name err))))))))
+
+(add-hook 'persp-before-kill-functions #'rs/eca--stop-session-for-workspace-h)
+
 ;;; --- Inline difftastic rendering for file-change (edit_file) diffs ------
 ;;
 ;; ECA hands the client a plain *unified diff* string for every `fileChange'
