@@ -247,6 +247,16 @@
 
 ;;
 ;;; clojure-ts-mode
+
+;; Remap clojure-mode variants to their clojure-ts-mode counterparts.
+;; We use `major-mode-remap-alist' rather than `auto-mode-alist' because
+;; Doom's built-in `:lang clojure' module explicitly strips clojure-ts-mode
+;; entries from `auto-mode-alist' (to guard against missing grammars) and
+;; relies on this remap mechanism instead.
+(add-to-list 'major-mode-remap-alist '(clojure-mode . clojure-ts-mode))
+(add-to-list 'major-mode-remap-alist '(clojurescript-mode . clojure-ts-clojurescript-mode))
+(add-to-list 'major-mode-remap-alist '(clojurec-mode . clojure-ts-clojurec-mode))
+
 (after! clojure-ts-mode
   ;; Indentation rules - translated from the legacy define-clojure-indent block.
   ;; Format: ("symbol" (rule-type n) ...) using :block and :inner per cljfmt.
