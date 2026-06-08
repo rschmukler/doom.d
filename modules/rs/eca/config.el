@@ -454,13 +454,11 @@ unavailable or rendering fails."
   (advice-add 'eca-chat--file-change-diff
               :around #'rs/eca--file-change-diff-difftastic-a)
 
-  ;; `eca-chat-mode' derives from `gfm-mode'/`markdown-mode', so entering it
-  ;; runs `markdown-mode-hook', which enables the `evil-markdown-mode' minor
-  ;; mode.  Minor-mode keymaps outrank the major mode's map, so
-  ;; `evil-markdown-mode-map' would shadow our `eca-chat-mode-map' bindings
-  ;; (e.g. `<tab>' -> `markdown-cycle' instead of toggling the section).  This
-  ;; hook runs *after* the parent `markdown-mode-hook', so turning the minor
-  ;; mode back off here reliably hands those keys back to `eca-chat-mode-map'.
+  (add-hook! 'eca-chat-mode-hook
+    (defun rs/eca--mark-as-real-buffer-h ()
+      "Tell Doom that ECA chat buffers are real buffers."
+      (setq-local doom-real-buffer-p t)))
+
   (add-hook! 'eca-chat-mode-hook
     (defun rs/eca--disable-evil-markdown-h ()
       "Disable `evil-markdown-mode' so its keymap doesn't shadow chat keys."
