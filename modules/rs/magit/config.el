@@ -142,12 +142,159 @@ restores the whole window configuration captured here."
         :n "~" #'magit-difftastic-toggle-file-rendering))
 
 ;;
+;;; clone
+
+(defvar rs/clone-root "~/dev"
+  "Directory under which `rs/clone' places cloned repositories.")
+
+(defvar rs/clone-default-host "github.com"
+  "Host assumed by `rs/clone' for bare OWNER/REPO shorthand input.")
+
+(defvar rs/clone-url-history nil
+  "Minibuffer history of URLs passed to `rs/clone'.")
+
+(defun rs/clone--normalize (input)
+  "Resolve INPUT into a cons of (CLONE-URL . OWNER/REPO-PATH), or nil.
+
+INPUT may be a full clone URL or a bare shorthand:
+
+  - scheme URL,  e.g. https://github.com/owner/repo[.git]
+  - scp-style,   e.g. git@github.com:owner/repo.git
+  - shorthand,   e.g. owner/repo  -> https://HOST/owner/repo
+                 where HOST is `rs/clone-default-host'
+
+The returned PATH (sans scheme, host and .git, trailing slashes
+trimmed) is used for the destination under `rs/clone-root'; nested
+paths such as GitLab subgroups are preserved.  CLONE-URL is what is
+handed to git."
+  (let* ((input (string-trim input))
+         (url input)
+         (path (cond
+                ;; scheme://host[:port]/owner/repo
+                ((string-match "\\`[a-zA-Z][a-zA-Z0-9+.-]*://[^/]+/\\(.+\\)\\'" input)
+                 (match-string 1 input))
+                ;; scp-style: [user@]host:owner/repo (never matches a scheme URL)
+                ((and (not (string-match-p "://" input))
+                      (string-match "\\`\\(?:[^@/]+@\\)?[^/:]+:\\(.+\\)\\'" input))
+                 (match-string 1 input))
+                ;; bare shorthand: owner/repo (no scheme, no ':') -> default host
+                ((string-match "\\`[^:[:space:]]+/[^:[:space:]]+\\'" input)
+                 (setq url (format "https://%s/%s" rs/clone-default-host input))
+                 input))))
+    (when path
+      (setq path (replace-regexp-in-string "/+\\'" "" path))
+      (setq path (replace-regexp-in-string "\\.git\\'" "" path))
+      ;; Only accept a clean relative OWNER/REPO[/...] path: non-empty, not
+      ;; absolute, and with no empty/`.'/`..' segments that could escape
+      ;; `rs/clone-root'.
+      (when (and (not (string-empty-p path))
+                 (not (string-prefix-p "/" path))
+                 (seq-every-p (lambda (seg)
+                                (not (member seg '("" "." ".."))))
+                              (split-string path "/")))
+        (cons url path)))))
+
+(defun rs/clone--missing-ancestors (dest)
+  "Return DEST's not-yet-existing ancestor directories, deepest-first.
+Used to know exactly which directories `rs/clone' creates, so only
+those can be pruned on a failed clone (never pre-existing ones)."
+  (let ((dir (directory-file-name (file-name-directory (directory-file-name dest))))
+        missing)
+    (while (and dir
+                (not (file-directory-p dir))
+                (not (member dir '("/" ""))))
+      (push dir missing)            ; ends up shallowest-first...
+      (setq dir (directory-file-name (file-name-directory dir))))
+    (nreverse missing)))            ; ...so reverse to deepest-first
+
+(defun rs/clone--cleanup (dest created-dirs)
+  "Remove DEST and any now-empty ancestor dirs in CREATED-DIRS.
+Called after a failed clone so no orphan directories are left behind.
+Only empty directories are removed, and only ones we created."
+  (when (file-directory-p dest)
+    (ignore-errors (delete-directory dest t)))
+  (dolist (dir created-dirs)        ; deepest-first
+    (when (and (file-directory-p dir)
+               (null (directory-files dir nil directory-files-no-dot-files-regexp)))
+      (ignore-errors (delete-directory dir)))))
+
+(defun rs/clone--open-workspace (dir name)
+  "Open a Doom workspace NAME for the freshly cloned project at DIR.
+Mirrors `rs/projectile-switch-project-workspace': reuse the workspace if
+it exists, otherwise create it and trigger the project switch action."
+  (require 'projectile)
+  (projectile-add-known-project (file-name-as-directory dir))
+  (if (+workspace-exists-p name)
+      (+workspace-switch name)
+    (+workspace-switch name t)
+    (counsel-projectile-switch-project-action (file-name-as-directory dir)))
+  (when (fboundp '+tmux/run)
+    (+tmux/run (concat "tt " name))))
+
+(defun rs/clone (input)
+  "Clone INPUT into `rs/clone-root' and open a new Doom workspace.
+
+Like `magit-clone', but the destination is derived from INPUT: the
+host path (github, gitlab, etc.) is mapped under `rs/clone-root',
+creating intermediate directories as needed.  For example,
+
+  https://github.com/plumce/plumcp
+
+clones into ~/dev/plumce/plumcp and opens a workspace named \"plumcp\".
+
+INPUT may also be a bare OWNER/REPO shorthand (e.g. plumce/plumcp),
+which is resolved against `rs/clone-default-host' (GitHub by default).
+
+Prompts for the repository interactively."
+  (interactive
+   (list (read-string "Clone repository: " nil 'rs/clone-url-history)))
+  (let ((parsed (rs/clone--normalize input)))
+    (unless parsed
+      (user-error "Could not parse a repository from: %s" input))
+    (let* ((url (car parsed))
+           (path (cdr parsed))
+           (dest (expand-file-name path rs/clone-root))
+           (name (file-name-nondirectory (directory-file-name dest))))
+      (when (file-exists-p dest)
+        (user-error "Destination already exists: %s" dest))
+      (let ((created (rs/clone--missing-ancestors dest))
+            (buf (get-buffer-create "*rs/clone*")))
+        (with-current-buffer buf (erase-buffer))
+        (condition-case err
+            (make-directory (file-name-directory dest) t)
+          (error
+           (rs/clone--cleanup dest created)
+           (user-error "Could not create destination %s: %s"
+                       (abbreviate-file-name dest) (error-message-string err))))
+        (message "Cloning %s into %s..." url (abbreviate-file-name dest))
+        (let ((proc (start-process "rs/clone" buf
+                                   magit-git-executable "clone" url dest)))
+          (set-process-sentinel
+           proc
+           (lambda (proc _event)
+             (when (eq (process-status proc) 'exit)
+               (if (zerop (process-exit-status proc))
+                   (progn
+                     (message "Cloned %s" (abbreviate-file-name dest))
+                     (rs/clone--open-workspace dest name))
+                 ;; Failed clone: prune the orphan dirs we created and warn,
+                 ;; surfacing git's own output so the cause is visible.
+                 (rs/clone--cleanup dest created)
+                 (display-buffer buf)
+                 (display-warning
+                  'rs/clone
+                  (format "git clone of %s failed (exit %d); cleaned up %s. See *rs/clone* for details."
+                          url (process-exit-status proc) (abbreviate-file-name dest))
+                  :error))))))))))
+
+;;
 ;;; Keybindings
 
 (map!
  (:leader
    (:desc "git" :prefix "g"
      :desc "Git status"        :n  "s" #'magit-status
+     :desc "Git clone"         :n  "c" #'rs/clone
      :desc "Git blame"         :n  "b" #'magit-blame
      :desc "Difftastic diff"   :n  "d" #'difftastic-magit-diff
      :desc "Difftastic show"   :n  "D" #'difftastic-magit-show
