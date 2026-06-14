@@ -288,6 +288,113 @@ Prompts for the repository interactively."
                   :error))))))))))
 
 ;;
+;;; github fork
+
+(defvar rs/github-fork-owner "rschmukler"
+  "Default GitHub owner proposed by `rs/github-fork' as the fork target.")
+
+(defvar rs/github--user-cache nil
+  "Cached login of the authenticated `gh' user.")
+
+(defun rs/github--current-user ()
+  "Return the authenticated GitHub login (cached), or nil if unknown."
+  (or rs/github--user-cache
+      (setq rs/github--user-cache
+            (let ((login (string-trim
+                          (shell-command-to-string "gh api user -q .login 2>/dev/null"))))
+              (and (not (string-empty-p login)) login)))))
+
+(defun rs/github--repo-root ()
+  "Return the toplevel directory of the current git repository.
+Signals a `user-error' when not inside one."
+  (let ((root (or (and (fboundp 'magit-toplevel) (magit-toplevel))
+                  (and (fboundp 'projectile-project-root)
+                       (ignore-errors (projectile-project-root)))
+                  (locate-dominating-file default-directory ".git"))))
+    (unless root
+      (user-error "Not inside a git repository"))
+    (file-name-as-directory (expand-file-name root))))
+
+(defun rs/github--repo-name (root)
+  "Return the repository name for the git repo at ROOT.
+Derived from origin's URL when available, else from ROOT's directory name."
+  (let* ((url (ignore-errors
+                (string-trim
+                 (shell-command-to-string
+                  (format "git -C %s remote get-url origin 2>/dev/null"
+                          (shell-quote-argument (directory-file-name root)))))))
+         (parsed (and url (not (string-empty-p url)) (rs/clone--normalize url))))
+    (if parsed
+        (file-name-nondirectory (cdr parsed))
+      (file-name-nondirectory (directory-file-name root)))))
+
+(defun rs/github--run (args buf success-msg)
+  "Run `gh' with ARGS asynchronously in BUF, warning on failure.
+On success, echo SUCCESS-MSG."
+  (with-current-buffer (get-buffer-create buf) (erase-buffer))
+  (let ((proc (apply #'start-process "rs/github" buf "gh" args)))
+    (set-process-sentinel
+     proc
+     (lambda (proc _event)
+       (when (eq (process-status proc) 'exit)
+         (if (zerop (process-exit-status proc))
+             (message "%s" success-msg)
+           (display-buffer buf)
+           (display-warning
+            'rs/github
+            (format "gh %s failed (exit %d). See %s for details."
+                    (string-join args " ") (process-exit-status proc) buf)
+            :error)))))))
+
+(defun rs/github-fork ()
+  "Fork the current repository on GitHub and add a remote for the fork.
+
+Proposes `rs/github-fork-owner'/<repo> as the fork target (editable in
+the minibuffer), names the new remote after the fork owner (e.g.
+\"rschmukler\"), and asks whether the fork should be public or private.
+
+- Public uses a real GitHub fork (`gh repo fork'), leaving `origin'
+  untouched and adding the fork under the owner-named remote.
+- Private creates a new private repository from the local repo
+  (`gh repo create --source'), since GitHub cannot make a private fork
+  of a public repository."
+  (interactive)
+  (unless (executable-find "gh")
+    (user-error "The GitHub CLI (gh) is not installed"))
+  (let* ((root (rs/github--repo-root))
+         (name (rs/github--repo-name root))
+         (target (string-trim
+                  (read-string "Fork to: "
+                               (format "%s/%s" rs/github-fork-owner name)))))
+    (unless (string-match "\\`\\([^/[:space:]]+\\)/\\([^/[:space:]]+\\)\\'" target)
+      (user-error "Invalid fork target, expected OWNER/REPO: %s" target))
+    (let* ((owner (match-string 1 target))
+           (repo (match-string 2 target))
+           (remote owner)
+           (private (string= "private"
+                             (completing-read "Visibility: " '("public" "private")
+                                              nil t nil nil "public")))
+           (default-directory root)
+           (buf "*rs/github-fork*"))
+      (if private
+          (rs/github--run
+           (list "repo" "create" target "--private"
+                 "--source" "." "--remote" remote "--push")
+           buf
+           (format "Created private fork %s (remote %S)" target remote))
+        (let ((user (rs/github--current-user)))
+          (rs/github--run
+           (append (list "repo" "fork" "--remote" "--remote-name" remote)
+                   ;; Forking into an org (owner differs from the gh user).
+                   (when (and user (not (equal owner user)))
+                     (list "--org" owner))
+                   ;; Renaming the fork's repo (target name differs from source).
+                   (unless (equal repo name)
+                     (list "--fork-name" repo)))
+           buf
+           (format "Forked to %s (remote %S)" target remote)))))))
+
+;;
 ;;; Keybindings
 
 (map!
@@ -295,6 +402,7 @@ Prompts for the repository interactively."
    (:desc "git" :prefix "g"
      :desc "Git status"        :n  "s" #'magit-status
      :desc "Git clone"         :n  "c" #'rs/clone
+     :desc "Github fork"       :n  "f" #'rs/github-fork
      :desc "Git blame"         :n  "b" #'magit-blame
      :desc "Difftastic diff"   :n  "d" #'difftastic-magit-diff
      :desc "Difftastic show"   :n  "D" #'difftastic-magit-show
