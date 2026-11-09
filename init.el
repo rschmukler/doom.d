@@ -70,7 +70,7 @@
        direnv            ; Use direnv
        lsp
       ;rgb               ; creating color strings
-       tmux              ; an API for interacting with tmux
+      ;tmux              ; an API for interacting with tmux
        upload            ; map local to remote projects via ssh/ftp
 
        :checkers
