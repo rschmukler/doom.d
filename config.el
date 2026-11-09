@@ -30,6 +30,18 @@
                               :compile "stack build"
                               :test "stack build --test"
                               :test-suffix "Test")
+  (defun rs/projectile-source-dir-locals (&rest _)
+    "Source the current project's `.dir-locals.el' when entering a project.
+Applies the directory-local variables (including any `eval' forms) for
+the project root to the current buffer.  Runs from
+`projectile-after-switch-project-hook', so it is independent of and does
+not interfere with `+workspaces-switch-project-function' (magit-status)."
+    (when-let ((root (ignore-errors (projectile-project-root))))
+      (let ((default-directory root)
+            (enable-local-variables :all)
+            (enable-local-eval t))
+        (hack-dir-local-variables-non-file-buffer))))
+  (add-hook 'projectile-after-switch-project-hook #'rs/projectile-source-dir-locals)
   (projectile-mode)
   (projectile-load-known-projects))
 
