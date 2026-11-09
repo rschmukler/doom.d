@@ -40,7 +40,7 @@ unanswered question.  A still-loading chat (⏳) is busy, not waiting."
        (with-current-buffer buffer
          (and (derived-mode-p 'eca-chat-mode)
               (or (eca-chat--has-pending-approvals-p)
-                  eca-chat--pending-question)))))
+                  eca-chat--pending-questions)))))
 
 (defun rs/eca--idle-p (buffer)
   "Non-nil when chat BUFFER is idle: open but not loading and not needing attention."
@@ -491,6 +491,18 @@ unavailable or rendering fails."
           ;; file-path button); append difft's rendering in place of the fence.
           (concat (substring orig 0 idx) rendered))
         orig)))
+
+(defun rs/eca-dev-reload ()
+  "Reload ECA source after all ECA sessions have stopped."
+  (interactive)
+  (when (and (boundp 'eca--sessions) eca--sessions)
+    (user-error "Stop all ECA sessions before reloading"))
+  (let ((root "~/dev/editor-code-assistant/eca-emacs/"))
+    (dolist (file '("eca-util.el"
+                    "eca-chat.el"
+                    "eca.el"))
+      (load-file (expand-file-name file root))))
+  (message "Reloaded ECA source"))
 
 ;;; --- Let this module own the chat keys ----------------------------------
 
