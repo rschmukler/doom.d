@@ -504,6 +504,17 @@ unavailable or rendering fails."
       (load-file (expand-file-name file root))))
   (message "Reloaded ECA source"))
 
+;;; --- Magit <-> ECA integration ------------------------------------------
+;;
+;; `magit-eca' (see ~/dev/rschmukler/magit-eca) refreshes a repo's magit
+;; buffers whenever ECA creates or modifies a file on disk -- otherwise an open
+;; `magit-status' goes stale during an agent run.  Refreshes are debounced and
+;; coalesced per repo, and can be toggled at runtime via `magit-eca-auto-refresh'.
+(use-package! magit-eca
+  :after eca
+  :config
+  (magit-eca-mode 1))
+
 ;;; --- Let this module own the chat keys ----------------------------------
 
 (when (boundp '+evil-collection-disabled-list)
