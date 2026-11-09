@@ -12,7 +12,13 @@
   (setq magit-prefer-remote-upstream t)
   (when (eq system-type 'darwin)
     (setq magit-delete-by-moving-to-trash nil)
-    (setq delete-by-moving-to-trash nil)))
+    (setq delete-by-moving-to-trash nil))
+  ;; Summarise every worktree (branch/HEAD/path) at the end of the status
+  ;; buffer.  Renders nothing when the repo has only a single worktree.
+  (magit-add-section-hook 'magit-status-sections-hook
+                          #'magit-insert-worktrees
+                          nil
+                          'append))
 
 (use-package! magit-todos
   :after magit-mode
@@ -142,6 +148,396 @@ restores the whole window configuration captured here."
         :n "~" #'magit-difftastic-toggle-file-rendering))
 
 ;;
+;;; worktrees
+;;
+;; Each git worktree is its own projectile project (a linked worktree has a
+;; `.git' *file*, which counts as a root marker), so it gets its own doom
+;; workspace and its own ECA session.  The only thing missing is a naming
+;; convention that keeps the owning repo visible: a bare directory name like
+;; `fix-cache-lock' says nothing about which repo it belongs to, and collides
+;; when two repos have a worktree for the same branch.
+;;
+;; `rs/worktree-workspace-name' is the single source of truth for that name and
+;; is used by *both* workspace creation here and ECA's session -> workspace
+;; lookup (see rs/eca/config.el).  They must agree, or the ECA status coloring
+;; and the workspace-kill hook stop finding their session.
+
+(defun rs/worktree--main-root (dir)
+  "Return the main worktree root for DIR, or nil when DIR is not in a repo.
+All worktrees of a repository share a `git-common-dir', which lives inside
+the main worktree; its parent is that worktree's root."
+  (let ((default-directory (file-name-as-directory (expand-file-name dir))))
+    (when-let* ((out (ignore-errors
+                       (string-trim
+                        (shell-command-to-string
+                         "git rev-parse --git-common-dir 2>/dev/null"))))
+                ((not (string-empty-p out)))
+                ;; Git < 2.5 echoes the flag back instead of failing.
+                ((not (string= out "--git-common-dir"))))
+      (file-name-directory (directory-file-name (expand-file-name out))))))
+
+(defun rs/worktree-workspace-name (dir)
+  "Return the doom workspace name for the project or worktree at DIR.
+
+For a repository's main worktree this is just its directory name; for a
+linked worktree it is \"REPO:WORKTREE\", so the owning repo stays visible
+in the workspace switcher and two repos can both have a worktree named
+e.g. `fix-auth' without colliding.  Non-git directories fall back to
+their own directory name.
+
+Worktrees in a shared pool are already named `REPO_BRANCH' (see
+`rs/worktree--default-directory'), so that prefix is stripped rather than
+doubled up into `hylo:hylo_rs-HYL-125'."
+  (if-let* ((linked (rs/worktree--linked dir)))
+      (format "%s:%s" (file-name-nondirectory (car linked)) (cdr linked))
+    (file-name-nondirectory (directory-file-name (expand-file-name dir)))))
+
+(defvar rs/worktree--linked-cache (make-hash-table :test #'equal)
+  "Memoized results of `rs/worktree--linked', keyed by directory.")
+
+(defun rs/worktree--linked (dir)
+  "Return (MAIN . NAME) when DIR is the root of a linked worktree, else nil.
+MAIN is the main worktree's root (without trailing slash) and NAME is
+DIR's directory name with any `REPO_' pool prefix stripped.  Only a
+directory whose `.git' is a file can be a linked worktree, so other
+directories are answered without running git.  Remote directories are
+never treated as linked worktrees."
+  (let ((dir (directory-file-name (expand-file-name dir))))
+    (when (and (not (file-remote-p dir))
+               (file-regular-p (expand-file-name ".git" dir)))
+      (let ((cached (gethash dir rs/worktree--linked-cache 'none)))
+        (if (not (eq cached 'none))
+            cached
+          (puthash
+           dir
+           (when-let* ((main (rs/worktree--main-root dir))
+                       (main (directory-file-name main))
+                       ((not (string= main dir)))
+                       ;; A submodule's common dir is `.git/modules/NAME'
+                       ;; in its parent, which is not a worktree root.
+                       ((file-directory-p (expand-file-name ".git" main))))
+             (let ((repo (file-name-nondirectory main))
+                   (own (file-name-nondirectory dir)))
+               (cons main
+                     (if (string-prefix-p (concat repo "_") own)
+                         (substring own (1+ (length repo)))
+                       own))))
+           rs/worktree--linked-cache))))))
+
+(defun rs/worktree--projectile-name (root)
+  "Return the projectile project name for ROOT.
+A linked worktree is named like its workspace (see
+`rs/worktree-workspace-name'); anything else gets projectile's default."
+  (if (rs/worktree--linked root)
+      (rs/worktree-workspace-name root)
+    (projectile-default-project-name root)))
+
+(defun rs/worktree--project-display (candidate)
+  "Return the name column for project path CANDIDATE in the project switcher.
+A linked worktree is shown as its main worktree's path followed by its
+own name in green, instead of its pool directory."
+  (if-let* ((linked (rs/worktree--linked candidate)))
+      (concat (propertize (abbreviate-file-name (car linked)) 'face 'ivy-subdir)
+              "  "
+              (propertize (cdr linked) 'face 'nerd-icons-green))
+    (nerd-icons-ivy-rich-project-name candidate)))
+
+(defun rs/worktree--project-icon (candidate)
+  "Return the icon column for project path CANDIDATE in the project switcher.
+Linked worktrees get a branch icon and other git repos a repo icon;
+anything else keeps the default directory icon."
+  (cond
+   ((file-remote-p candidate)
+    (nerd-icons-ivy-rich-file-icon candidate))
+   ((rs/worktree--linked candidate)
+    (nerd-icons-ivy-rich-icon
+     (nerd-icons-octicon "nf-oct-git_branch" :face 'nerd-icons-purple)))
+   ((file-directory-p (expand-file-name ".git" candidate))
+    (nerd-icons-ivy-rich-icon
+     (nerd-icons-octicon "nf-oct-repo" :face 'nerd-icons-blue)))
+   (t (nerd-icons-ivy-rich-file-icon candidate))))
+
+;; Doom names a project's workspace after `doom-project-name', which goes
+;; through `projectile-project-name-function'; naming worktrees there means
+;; every project switcher creates the repo-qualified workspace directly.
+(after! projectile
+  (setq projectile-project-name-function #'rs/worktree--projectile-name))
+
+;; The project switcher is drawn by nerd-icons-ivy-rich's columns; swap in
+;; our icon and name columns, keeping the rest of its layout.  This runs
+;; when the package loads, before Doom enables the mode, so the reload only
+;; matters when re-evaluating in a live session.
+(after! nerd-icons-ivy-rich
+  (let* ((swaps '((nerd-icons-ivy-rich-file-icon . rs/worktree--project-icon)
+                  (nerd-icons-ivy-rich-project-name . rs/worktree--project-display)))
+         (spec (plist-get nerd-icons-ivy-rich-display-transformers-list
+                          'counsel-projectile-switch-project))
+         (columns (mapcar (lambda (column)
+                            (if-let* ((ours (alist-get (car column) swaps)))
+                                (cons ours (cdr column))
+                              column))
+                          (plist-get spec :columns))))
+    (setq nerd-icons-ivy-rich-display-transformers-list
+          (plist-put (copy-sequence nerd-icons-ivy-rich-display-transformers-list)
+                     'counsel-projectile-switch-project
+                     (plist-put (copy-sequence spec) :columns columns))))
+  (when (bound-and-true-p nerd-icons-ivy-rich-mode)
+    (nerd-icons-ivy-rich-reload)
+    (ivy-rich-reload)))
+
+(defun rs/open-project-workspace (dir)
+  "Open (or switch to) the doom workspace for the project at DIR.
+Registers DIR with projectile, then reuses an existing workspace when one
+matches `rs/worktree-workspace-name', otherwise creates it and runs the
+usual project-switch action.
+
+The project-switch action names the workspace after `doom-project-name',
+which already matches for worktrees; the rename afterwards is a fallback
+for when Doom had to uniquify that name."
+  (require 'projectile)
+  (let* ((dir (file-name-as-directory (expand-file-name dir)))
+         (name (rs/worktree-workspace-name dir)))
+    (projectile-add-known-project dir)
+    (if (+workspace-exists-p name)
+        (+workspace-switch name)
+      (counsel-projectile-switch-project-action dir)
+      ;; Doom has now created/renamed a workspace for this project; give it
+      ;; our repo-qualified name unless something already claimed it.
+      (let ((current (+workspace-current-name)))
+        (unless (equal current name)
+          (if (+workspace-exists-p name)
+              (+workspace-switch name)
+            (with-demoted-errors "Workspace rename error: %s"
+              (+workspace-rename current name))))))
+    name))
+
+(defun rs/worktree--candidates ()
+  "Return an alist of (LABEL . PATH) for the current repo's worktrees.
+LABEL shows the path with its checked-out branch, so worktrees of the same
+repo are easy to tell apart."
+  (require 'magit)
+  (mapcar (lambda (wt)
+            (let ((path (car wt))
+                  (branch (nth 2 wt)))
+              (cons (format "%s  [%s]"
+                            (abbreviate-file-name path)
+                            (or branch "detached"))
+                    path)))
+          (magit-list-worktrees)))
+
+(defun rs/worktree--read ()
+  "Read one of the current repo's worktree paths in the minibuffer."
+  (let ((candidates (rs/worktree--candidates)))
+    (unless candidates
+      (user-error "Not inside a git repository"))
+    (cdr (assoc (completing-read "Worktree: " candidates nil t)
+                candidates))))
+
+(defun rs/worktree--at-point-or-read ()
+  "Return the worktree path at point, or read one in the minibuffer."
+  (require 'magit)
+  (or (magit-section-value-if 'worktree)
+      (rs/worktree--read)))
+
+(defun rs/worktree-switch (path)
+  "Switch to the doom workspace for one of this repo's worktrees.
+Opens the workspace only; start a chat there with `SPC e e' / `SPC e n'."
+  (interactive (list (rs/worktree--read)))
+  (rs/open-project-workspace path))
+
+(defun rs/worktree-visit (path)
+  "Show the status of the worktree at PATH in the current workspace.
+The current workspace is renamed to match the worktree.  When a
+workspace with that name already exists, it is switched to instead."
+  (interactive (list (rs/worktree--at-point-or-read)))
+  (when (bound-and-true-p persp-mode)
+    (let ((name (rs/worktree-workspace-name path))
+          (current (+workspace-current-name)))
+      (cond ((equal name current))
+            ((+workspace-exists-p name) (+workspace-switch name))
+            (t (with-demoted-errors "Workspace rename error: %s"
+                 (+workspace-rename current name))))))
+  (magit-worktree-status path))
+
+(defun rs/worktree-visit-in-new-workspace (path)
+  "Open the worktree at PATH in its own doom workspace.
+Reuses the worktree's workspace when one is already open."
+  (interactive (list (rs/worktree--at-point-or-read)))
+  (rs/open-project-workspace path))
+
+(defvar rs/worktree-directory "~/dev/.worktrees"
+  "Where `rs/worktree-create' places new worktrees.
+A relative path is resolved inside the main worktree (so worktrees are
+nested under the repo); an absolute path, or one starting with `~', is
+used as-is.  A nested directory must be ignored by git -- see
+`rs/worktree--ensure-excluded'.")
+
+(defun rs/worktree--ensure-excluded (main)
+  "Ensure `rs/worktree-directory' is ignored in the repo at MAIN.
+Only applies when the directory is nested inside the repo, where git
+would otherwise report it as untracked.  Written to `.git/info/exclude'
+rather than `.gitignore' so the convention stays local and never lands
+in a commit."
+  (unless (file-name-absolute-p rs/worktree-directory)
+    (let* ((exclude (expand-file-name ".git/info/exclude" main))
+           (entry (file-name-as-directory rs/worktree-directory))
+           (current (when (file-readable-p exclude)
+                      (with-temp-buffer
+                        (insert-file-contents exclude)
+                        (buffer-string)))))
+      (unless (and current
+                   (string-match-p (concat "^" (regexp-quote entry) "$") current))
+        (make-directory (file-name-directory exclude) t)
+        (with-temp-buffer
+          (when current (insert current))
+          (goto-char (point-max))
+          (unless (bolp) (insert "\n"))
+          (insert entry "\n")
+          (write-region (point-min) (point-max) exclude nil 'silent))
+        (message "Added %s to %s" entry (abbreviate-file-name exclude))))))
+
+(defvar rs/worktree-copy-files '(".envrc" ".dir-locals.el")
+  "Gitignored files copied into a newly created worktree.
+Copies (rather than links) are independent, so a worktree can diverge --
+and `direnv' wants to hash and allow its own `.envrc' per directory.")
+
+(defvar rs/worktree-link-files '(".eca")
+  "Gitignored files symlinked into a newly created worktree.
+Links keep a single source of truth in the main worktree: editing the
+target from any worktree changes it for all of them.  Suitable for
+shared config (ECA's MCP servers, rules, ...) that should not drift.")
+
+(defun rs/worktree--link-missing (main worktree entry)
+  "Symlink ENTRY from MAIN into WORKTREE, returning the linked relative paths.
+When ENTRY is already a real directory in WORKTREE (because some of its
+files are tracked), its missing children are linked individually instead,
+recursively."
+  (let ((src (expand-file-name entry main))
+        (dst (expand-file-name entry worktree)))
+    (cond
+     ((not (file-exists-p src)) nil)
+     ((not (or (file-exists-p dst) (file-symlink-p dst)))
+      (make-symbolic-link src dst)
+      (list entry))
+     ((and (file-directory-p src)
+           (file-directory-p dst)
+           (not (file-symlink-p dst)))
+      (mapcan (lambda (child)
+                (rs/worktree--link-missing main worktree
+                                           (concat (file-name-as-directory entry)
+                                                   child)))
+              (directory-files src nil directory-files-no-dot-files-regexp))))))
+
+(defun rs/worktree--seed (main worktree)
+  "Seed WORKTREE with the gitignored config files from MAIN.
+
+`git worktree add' only materialises *tracked* files, so anything
+gitignored (`.envrc', `.eca', ...) is absent from a fresh worktree even
+though the repo does not work without it.  `rs/worktree-copy-files' are
+copied and `rs/worktree-link-files' are symlinked (into a partially
+tracked directory, only its missing children are linked); existing
+entries in WORKTREE are never overwritten.  Caches such as `.direnv' are
+deliberately not seeded -- direnv rebuilds them on `direnv allow'."
+  (let (seeded)
+    (dolist (entry rs/worktree-copy-files)
+      (let ((src (expand-file-name entry main))
+            (dst (expand-file-name entry worktree)))
+        (when (and (file-exists-p src) (not (file-exists-p dst)))
+          (if (file-directory-p src)
+              (copy-directory src dst nil t t)
+            (copy-file src dst nil t))
+          (push entry seeded))))
+    (dolist (entry rs/worktree-link-files)
+      (dolist (linked (rs/worktree--link-missing main worktree entry))
+        (push (concat linked " -> main") seeded)))
+    (when seeded
+      (message "Seeded worktree with %s" (string-join (nreverse seeded) ", ")))))
+
+(defun rs/worktree--direnv-allow (worktree)
+  "Run `direnv allow' in WORKTREE when it has an `.envrc'.
+A copied `.envrc' is untrusted in its new location, so direnv refuses to
+load it until allowed."
+  (when (and (executable-find "direnv")
+             (file-exists-p (expand-file-name ".envrc" worktree)))
+    (let ((default-directory (file-name-as-directory worktree)))
+      (if (zerop (call-process "direnv" nil nil nil "allow"))
+          (message "direnv allow: %s" (abbreviate-file-name worktree))
+        (message "direnv allow failed in %s" (abbreviate-file-name worktree))))))
+
+(defun rs/worktree--default-directory (branch)
+  "Return the default path for a new worktree checking out BRANCH.
+Resolved under `rs/worktree-directory'.  When that is a shared pool
+outside the repo (an absolute path), the directory name is prefixed with
+the repo -- `hylo' + `rs/HYL-123' -> `hylo_rs-HYL-123' -- so worktrees
+from different repos stay distinguishable.  Nested under the repo the
+prefix is redundant and omitted.  Slashes in BRANCH are flattened so
+`feat/foo' does not create intermediate directories."
+  (let* ((main (directory-file-name (or (rs/worktree--main-root default-directory)
+                                        (user-error "Not inside a git repository"))))
+         (repo (file-name-nondirectory main))
+         (absolute (file-name-absolute-p rs/worktree-directory))
+         (base (if absolute
+                   (expand-file-name rs/worktree-directory)
+                 (expand-file-name rs/worktree-directory main)))
+         (leaf (replace-regexp-in-string "/" "-" branch)))
+    (expand-file-name (if absolute (format "%s_%s" repo leaf) leaf) base)))
+
+(defun rs/worktree--add-and-open (name add-fn)
+  "Add a worktree via ADD-FN, seed it, and switch to its workspace.
+NAME (a branch or commit) determines the default location offered in the
+minibuffer.  ADD-FN is called with the chosen directory and must run
+`git worktree add' there."
+  (let ((main (directory-file-name
+               (or (rs/worktree--main-root default-directory)
+                   (user-error "Not inside a git repository"))))
+        (path (read-directory-name
+               "Worktree location: "
+               (file-name-as-directory (rs/worktree--default-directory name)))))
+    (when (file-exists-p (directory-file-name path))
+      (user-error "Destination already exists: %s" path))
+    (rs/worktree--ensure-excluded main)
+    ;; The magit worktree commands only proceed when git exits 0, so a failed
+    ;; `git worktree add' must not fall through to opening a workspace for a
+    ;; directory that was never created.
+    (funcall add-fn path)
+    (if (file-directory-p (directory-file-name path))
+        (progn
+          ;; Gitignored config (.envrc/.eca/...) is not part of the tree git
+          ;; checks out, so seed it before anything tries to use the worktree.
+          (rs/worktree--seed main path)
+          (rs/worktree--direnv-allow path)
+          (rs/open-project-workspace path))
+      (user-error "Worktree was not created at %s (see the git output above)"
+                  (abbreviate-file-name path)))))
+
+(defun rs/worktree-create (branch start-point)
+  "Create a new BRANCH from START-POINT in a worktree and switch to it.
+The worktree is placed under `rs/worktree-directory' (by default
+`.worktrees/' inside the repo); the location is editable in the
+minibuffer.  A nested worktree directory is added to `.git/info/exclude'
+so git does not report it as untracked."
+  (interactive
+   ;; `magit-branch-read-args' returns (BRANCH START-POINT) and resolves the
+   ;; start-point the same way `magit-worktree-branch' does.  Reading it
+   ;; ourselves (e.g. `magit-get-current-branch') breaks on a detached HEAD and
+   ;; on repos whose default branch is not the checked-out one.
+   (magit-branch-read-args "In new worktree; checkout new branch"))
+  (rs/worktree--add-and-open
+   branch
+   (lambda (path) (magit-worktree-branch path branch start-point))))
+
+(defun rs/worktree-checkout (commit)
+  "Check out an existing COMMIT or branch in a new worktree and switch to it.
+Like `rs/worktree-create', but no new branch is created."
+  (interactive
+   (list (magit-read-branch-or-commit
+          "In new worktree; checkout" nil
+          (mapcar #'caddr (magit-list-worktrees)))))
+  (rs/worktree--add-and-open
+   commit
+   (lambda (path) (magit-worktree-checkout path commit))))
+
+;;
 ;;; clone
 
 (defvar rs/clone-root "~/dev"
@@ -218,18 +614,9 @@ Only empty directories are removed, and only ones we created."
                (null (directory-files dir nil directory-files-no-dot-files-regexp)))
       (ignore-errors (delete-directory dir)))))
 
-(defun rs/clone--open-workspace (dir name)
-  "Open a Doom workspace NAME for the freshly cloned project at DIR.
-Mirrors `rs/projectile-switch-project-workspace': reuse the workspace if
-it exists, otherwise create it and trigger the project switch action."
-  (require 'projectile)
-  (projectile-add-known-project (file-name-as-directory dir))
-  (if (+workspace-exists-p name)
-      (+workspace-switch name)
-    (+workspace-switch name t)
-    (counsel-projectile-switch-project-action (file-name-as-directory dir)))
-  (when (fboundp '+tmux/run)
-    (+tmux/run (concat "tt " name))))
+(defun rs/clone--open-workspace (dir _name)
+  "Open a Doom workspace for the freshly cloned project at DIR."
+  (rs/open-project-workspace dir))
 
 (defun rs/clone (input)
   "Clone INPUT into `rs/clone-root' and open a new Doom workspace.
@@ -403,6 +790,12 @@ the minibuffer), names the new remote after the fork owner (e.g.
      :desc "Git status"        :n  "s" #'magit-status
      :desc "Git clone"         :n  "c" #'rs/clone
      :desc "Github fork"       :n  "f" #'rs/github-fork
+     (:desc "worktree" :prefix "w"
+       :desc "Switch worktree"   :n "w" #'rs/worktree-switch
+       :desc "Create worktree"   :n "c" #'rs/worktree-create
+       :desc "Checkout worktree" :n "C" #'rs/worktree-checkout
+       :desc "Delete worktree"   :n "k" #'magit-worktree-delete
+       :desc "Worktree actions"  :n "Z" #'magit-worktree)
      :desc "Git blame"         :n  "b" #'magit-blame
      :desc "Difftastic diff"   :n  "d" #'difftastic-magit-diff
      :desc "Difftastic show"   :n  "D" #'difftastic-magit-show
@@ -417,6 +810,14 @@ the minibuffer), names the new remote after the fork owner (e.g.
  (:after magit
    :map magit-blame-mode-map
    :n "q" #'magit-blame-quit)
+
+ ;; RET on a worktree opens it in the current workspace (renamed to match);
+ ;; S-RET opens it in its own workspace.  Section keymaps are text
+ ;; properties, so they take precedence over evil's state maps.
+ (:after magit
+  :map magit-worktree-section-map
+  [remap magit-visit-thing] #'rs/worktree-visit
+  "S-<return>"              #'rs/worktree-visit-in-new-workspace)
 
  (:after code-review
   :map forge-pullreq-section-map

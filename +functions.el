@@ -51,25 +51,16 @@ current buffer directory."
   (with-current-buffer buffer-handle major-mode))
 
 (defun rs/projectile-switch-project-workspace ()
-  "Use projectile prompt to find or switch projects in a workspace tab."
+  "Use projectile prompt to find or switch projects in a workspace tab.
+Workspace naming is shared with `rs/open-project-workspace', so a linked
+git worktree opens as \"REPO:WORKTREE\" rather than a bare directory name."
   (interactive)
   (require 'projectile)
   (ivy-read
    (projectile-prepend-project-name "Switch to project: ") projectile-known-projects
    :preselect (and (projectile-project-p)
                    (abbreviate-file-name (projectile-project-root)))
-   :action
-   (lambda (project-path)
-     (let ((project-name
-            (file-name-nondirectory
-             (directory-file-name (file-name-directory project-path)))
-            ))
-       (progn
-         (if (+workspace-exists-p project-name)
-             (+workspace-switch project-name)
-           (progn (+workspace-switch project-name t)
-                  (counsel-projectile-switch-project-action project-path)))
-         (+tmux/run (concat "tt " project-name)))))))
+   :action #'rs/open-project-workspace))
 
 (defmacro define-move-and-insert
     (name &rest body)
