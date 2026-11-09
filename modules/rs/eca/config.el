@@ -60,20 +60,29 @@ unanswered question.  A still-loading chat (⏳) is busy, not waiting."
     (sort (copy-sequence (eca-vals eca--sessions))
           (lambda (a b) (< (eca--session-id a) (eca--session-id b))))))
 
+(defun rs/eca--session-workspace-by-name (session)
+  "Return the doom workspace named after SESSION's root, or nil.
+Uses `rs/worktree-workspace-name' -- the same function that *creates*
+these workspaces (see rs/magit/config.el) -- so a linked worktree
+resolves to its \"REPO:WORKTREE\" workspace rather than a bare directory
+name.  The two must stay in agreement: this is the only lookup that
+works before a session has any chat buffers."
+  (when-let* (((fboundp 'rs/worktree-workspace-name))
+              (root (car (eca--session-workspace-folders session))))
+    (car (member (rs/worktree-workspace-name root) (+workspace-list-names)))))
+
 (defun rs/eca--session-workspace (session buffer)
   "Return the doom workspace name for SESSION's BUFFER, or nil.
-Prefer a workspace named after the session's project (the convention
-used by `rs/projectile-switch-project-workspace'); fall back to the
-workspace that actually contains BUFFER."
+Prefer the workspace named after the session's root (the convention used
+by `rs/open-project-workspace'); fall back to the workspace that actually
+contains BUFFER."
   (when (and (bound-and-true-p persp-mode)
              (fboundp '+workspace-list-names))
-    (let ((names (+workspace-list-names)))
-      (or (and (fboundp 'eca--session-project-name)
-               (car (member (eca--session-project-name session) names)))
-          (and (fboundp '+workspace-buffer-list)
-               (seq-find (lambda (name)
-                           (memq buffer (ignore-errors (+workspace-buffer-list name))))
-                         names))))))
+    (or (rs/eca--session-workspace-by-name session)
+        (and (fboundp '+workspace-buffer-list)
+             (seq-find (lambda (name)
+                         (memq buffer (ignore-errors (+workspace-buffer-list name))))
+                       (+workspace-list-names))))))
 
 (defun rs/eca--show-chat (session buffer)
   "Make BUFFER the active chat for SESSION and display it.
@@ -201,6 +210,54 @@ project (ECA session), eventually visiting them all and wrapping around."
           (rs/eca--show-chat (car target) (cdr target))
         (eca-info "No idle ECA chat in any project")))))
 
+;;; --- Worktrees ----------------------------------------------------------
+;;
+;; With `eca-worktree-mode' set to `isolated' every git worktree gets its own
+;; ECA session (and therefore its own server, its own MCP servers, and its own
+;; clojack nREPL connection auto-discovered from that worktree's .nrepl-port).
+;; The alternative, `merged', folds all worktrees of a repo into one session
+;; whose tools default to the *first* workspace root -- so an agent working in
+;; one worktree would eval against another's REPL.
+;;
+;; Note this is not retroactive: sessions that are already merged stay merged
+;; until restarted with `eca-restart'.
+
+(defun rs/eca--bind-default-directory-h ()
+  "Point the chat buffer at its session's root.
+Chat buffers otherwise inherit `default-directory' from whichever buffer
+happened to be current when they were created, which sends magit, CIDER
+and anything else resolving through it to the wrong worktree."
+  (when-let* ((session (eca-chat--selection-session))
+              (root (car (eca--session-workspace-folders session))))
+    (setq-local default-directory (file-name-as-directory root))))
+
+(defun rs/eca-chat-new-in-worktree (root)
+  "Open a new ECA chat bound to the worktree at ROOT.
+Starts ROOT's session when it does not have one yet.  Several chats can
+share a worktree; they are all tabs of that worktree's session."
+  (interactive
+   (list (if (fboundp 'rs/worktree--candidates)
+             (let ((candidates (rs/worktree--candidates)))
+               (unless candidates
+                 (user-error "Not inside a git repository"))
+               (cdr (assoc (completing-read "Worktree: " candidates nil t)
+                           candidates)))
+           (read-directory-name "Worktree: "))))
+  (require 'eca)
+  (let* ((root (expand-file-name root))
+         (session (seq-find (lambda (s)
+                              (seq-find (lambda (f) (file-equal-p f root))
+                                        (eca--session-workspace-folders s)))
+                            (rs/eca--sessions-ordered))))
+    (if session
+        (eca-chat--new-chat session)
+      ;; `eca-session' consults the buffer-local `eca--session-id-cache' before
+      ;; `default-directory', so a fresh buffer is the only reliable way to
+      ;; start a session for a root other than the current buffer's.
+      (with-temp-buffer
+        (setq default-directory (file-name-as-directory root))
+        (eca)))))
+
 ;;; --- Whitespace ---------------------------------------------------------
 ;;
 ;; Keep `global-whitespace-mode' out of ECA chat buffers.  This lives at the
@@ -251,19 +308,17 @@ project (ECA session), eventually visiting them all and wrapping around."
 
 (defun rs/eca--session-workspace-name (session)
   "Return the doom workspace name SESSION maps to, or nil.
-Prefer a workspace named after the session's project; fall back to a
+Prefer the workspace named after the session's root; fall back to a
 workspace that contains one of the session's chat buffers."
   (when (and (bound-and-true-p persp-mode)
              (fboundp '+workspace-list-names))
-    (let ((names (+workspace-list-names)))
-      (or (and (fboundp 'eca--session-project-name)
-               (car (member (eca--session-project-name session) names)))
-          (and (fboundp '+workspace-buffer-list)
-               (seq-find (lambda (name)
-                           (seq-some (lambda (buf)
-                                       (memq buf (ignore-errors (+workspace-buffer-list name))))
-                                     (rs/eca--session-chats session)))
-                         names))))))
+    (or (rs/eca--session-workspace-by-name session)
+        (and (fboundp '+workspace-buffer-list)
+             (seq-find (lambda (name)
+                         (seq-some (lambda (buf)
+                                     (memq buf (ignore-errors (+workspace-buffer-list name))))
+                                   (rs/eca--session-chats session)))
+                       (+workspace-list-names))))))
 
 (defun rs/eca--workspace-status (name)
   "Return aggregated ECA status for workspace NAME.
@@ -448,6 +503,11 @@ unavailable or rendering fails."
   :config
   (setq eca-buttons-allow-mouse t)
 
+  ;; One ECA session per git worktree (see the "Worktrees" section above).
+  (setq eca-worktree-mode 'isolated)
+
+  (add-hook 'eca-chat-mode-hook #'rs/eca--bind-default-directory-h)
+
   ;; Render file-change (edit_file) diffs inline with difftastic (see the
   ;; "Inline difftastic rendering" section above).  Additive `:around' advice;
   ;; falls back to the stock ```diff fence when difft is unavailable.
@@ -471,6 +531,7 @@ unavailable or rendering fails."
     :desc "Eca" :prefix "e"
     :desc "Start session" :n "e" #'eca
     :desc "Start session" :n "r" #'eca-restart
+    :desc "New chat in worktree" :n "n" #'rs/eca-chat-new-in-worktree
     :desc "Rewrite" :n "w" #'eca-rewrite
     :desc "Talk" :n "t" #'eca-chat-talk
     :desc "Jump to attention (project)" :n "j" #'rs/eca-jump-to-attention-in-project
