@@ -1,12 +1,19 @@
 ;;; private/rschmukler/+bindings.el -*- lexical-binding: t; -*-
 
 
+;; Historical intent: Command means Meta (M-), not Super (s-).
+;; Applied on GNU Emacs and Neomacs alike. Doom's default is
+;; Command=super, Option=meta (see doom-emacs.el), which feels swapped here.
 (when (eq system-type 'gnu/linux)
   (setq x-hyper-keysym 'meta)
   (setq x-super-keysym 'meta))
 
-(when (eq system-type 'darwin)
-  (setq mac-command-modifier 'meta))
+(when (and (eq system-type 'darwin)
+           (not (and (boundp 'invocation-name)
+                     (stringp invocation-name)
+                     (string-match-p "neomacs" invocation-name))))
+  (setq mac-command-modifier 'meta
+        ns-command-modifier 'meta))
 
 (map!
 
