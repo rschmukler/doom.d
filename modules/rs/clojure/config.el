@@ -415,6 +415,52 @@ with the given LIMIT."
   (setq cljr-clojure-test-declaration "[clojure.test :refer [deftest testing is]]"))
 
 ;;
+;;; Quit a workspace's CIDER sessions when its tab is closed
+
+(defun rs/cider--session-workspace-name (session)
+  "Return the doom workspace name SESSION maps to, or nil.
+Prefer the workspace named after a REPL's project directory (the naming
+convention used by `rs/open-project-workspace'); fall back to a workspace
+that actually contains one of the session's REPL buffers."
+  (when (and (bound-and-true-p persp-mode)
+             (fboundp '+workspace-list-names))
+    (let ((repls (seq-filter #'buffer-live-p (cdr session))))
+      (or (and (fboundp 'rs/worktree-workspace-name)
+               (seq-some (lambda (repl)
+                           (when-let* ((dir (buffer-local-value 'nrepl-project-dir repl)))
+                             (car (member (rs/worktree-workspace-name dir)
+                                          (+workspace-list-names)))))
+                         repls))
+          (and (fboundp '+workspace-buffer-list)
+               (seq-find (lambda (name)
+                           (seq-some (lambda (buf)
+                                       (memq buf (ignore-errors (+workspace-buffer-list name))))
+                                     repls))
+                         (+workspace-list-names)))))))
+
+(defun rs/cider--quit-sessions-for-workspace-h (persp &rest _)
+  "Quit, after confirmation, CIDER sessions bound to the workspace PERSP."
+  (when (and persp (fboundp 'persp-name) (fboundp 'cider-sessions))
+    (let* ((name (persp-name persp))
+           (sessions (seq-filter (lambda (session)
+                                   (equal name (rs/cider--session-workspace-name session)))
+                                 (cider-sessions))))
+      (when (and sessions
+                 (y-or-n-p (format "Quit CIDER session%s %s? "
+                                   (if (cdr sessions) "s" "")
+                                   (string-join (mapcar #'car sessions) ", "))))
+        (dolist (session sessions)
+          (condition-case err
+              (with-temp-buffer
+                (setq-local sesman-system 'CIDER)
+                (sesman-quit session))
+            (error
+             (message "rs/clojure: failed to quit CIDER session %s: %S"
+                      (car session) err))))))))
+
+(add-hook 'persp-before-kill-functions #'rs/cider--quit-sessions-for-workspace-h)
+
+;;
 ;;; Keybindings
 
 (map!
