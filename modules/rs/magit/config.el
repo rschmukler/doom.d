@@ -44,6 +44,12 @@
   :config
   (setq git-link-use-commit t))
 
+(after! git-commit
+  ;; Doom defaults to 50 (the classic Chris Beams convention), which is tight
+  ;; once Conventional Commits prefixes (e.g. "feat(scope): ") are accounted
+  ;; for. 72 keeps a real hard limit while giving room to breathe.
+  (setq git-commit-summary-max-length 72))
+
 ;;
 ;;; ediff
 ;;
