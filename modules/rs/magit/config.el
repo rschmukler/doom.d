@@ -269,6 +269,29 @@ anything else keeps the default directory icon."
 (after! projectile
   (setq projectile-project-name-function #'rs/worktree--projectile-name))
 
+(defun rs/worktree--name-project-workspace-a (fn &optional dir)
+  "Call FN with DIR, then give a linked worktree's workspace its proper name.
+FN is `+workspaces-switch-to-project-h'.  When no workspace has the
+project's name yet, its de-duplication falls back to the directory's
+basename (`repo_branch' for a pooled worktree), ignoring the name it was
+given."
+  (let ((root (file-truename (or dir default-directory))))
+    (prog1 (funcall fn dir)
+      (when-let* (((bound-and-true-p persp-mode))
+                  ((rs/worktree--linked root))
+                  (name (rs/worktree-workspace-name root))
+                  (current (+workspace-current-name))
+                  ((not (equal current name)))
+                  ((not (+workspace-exists-p name)))
+                  (project (persp-parameter '+workspace-project
+                                            (+workspace-current)))
+                  ((ignore-errors (file-equal-p project root))))
+        (with-demoted-errors "Workspace rename error: %s"
+          (+workspace-rename current name))))))
+
+(advice-add '+workspaces-switch-to-project-h :around
+            #'rs/worktree--name-project-workspace-a)
+
 ;; The project switcher is drawn by nerd-icons-ivy-rich's columns; swap in
 ;; our icon and name columns, keeping the rest of its layout.  This runs
 ;; when the package loads, before Doom enables the mode, so the reload only
@@ -353,8 +376,9 @@ Opens the workspace only; start a chat there with `SPC e e' / `SPC e n'."
 
 (defun rs/worktree-visit (path)
   "Show the status of the worktree at PATH in the current workspace.
-The current workspace is renamed to match the worktree.  When a
-workspace with that name already exists, it is switched to instead."
+The current workspace is renamed to match the worktree and records it as
+its project, so Doom's project switcher reuses it.  When a workspace with
+that name already exists, it is switched to instead."
   (interactive (list (rs/worktree--at-point-or-read)))
   (when (bound-and-true-p persp-mode)
     (let ((name (rs/worktree-workspace-name path))
@@ -362,7 +386,11 @@ workspace with that name already exists, it is switched to instead."
       (cond ((equal name current))
             ((+workspace-exists-p name) (+workspace-switch name))
             (t (with-demoted-errors "Workspace rename error: %s"
-                 (+workspace-rename current name))))))
+                 (+workspace-rename current name)
+                 (set-persp-parameter '+workspace-project
+                                      (file-name-as-directory
+                                       (file-truename path))
+                                      (+workspace-current)))))))
   (magit-worktree-status path))
 
 (defun rs/worktree-visit-in-new-workspace (path)
