@@ -529,6 +529,16 @@ unavailable or rendering fails."
   ;; One ECA session per git worktree (see the "Worktrees" section above).
   (setq eca-worktree-mode 'isolated)
 
+  ;; Huge tool calls (big file writes, long outputs) can lock up Emacs:
+  ;; skip syntax highlighting past 20k chars and don't auto-expand
+  ;; pending approvals past 10k (approve from the collapsed label).
+  (setq eca-chat-expandable-block-fontify-max-length 20000
+        eca-chat-tool-call-auto-expansion-max-length 10000)
+
+  ;; Show tool call bodies as plain text instead of parsing them as
+  ;; markdown (diffs and JSON keep their colors via their own modes).
+  (setq eca-chat-tool-call-fontify-markdown nil)
+
   (add-hook 'eca-chat-mode-hook #'rs/eca--bind-default-directory-h)
 
   ;; Render file-change (edit_file) diffs inline with difftastic (see the
