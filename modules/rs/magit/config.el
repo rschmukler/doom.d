@@ -498,14 +498,43 @@ load it until allowed."
           (message "direnv allow: %s" (abbreviate-file-name worktree))
         (message "direnv allow failed in %s" (abbreviate-file-name worktree))))))
 
+(defvar rs/worktree-strip-branch-prefixes '("rs/")
+  "Branch prefixes dropped from the suggested name of a new worktree.
+These mark ownership on a shared remote and are redundant locally, so
+`rs/workspaces' suggests a worktree named `workspaces'.  Only the first
+matching prefix is dropped, and only when something remains after it.")
+
+(defun rs/worktree--suggested-name (ref)
+  "Return the worktree name suggested for checking out REF.
+A leading remote name is dropped first when REF is a remote-tracking
+branch (`origin/rs/foo' -> `rs/foo'), then any prefix from
+`rs/worktree-strip-branch-prefixes' (-> `foo'), so a checkout of a
+remote branch suggests the same name as creating it locally.  A local
+branch that merely starts with a remote's name is left alone."
+  (let ((name ref))
+    (when-let* ((slash (string-search "/" name))
+                ((member (substring name 0 slash) (magit-list-remotes)))
+                ((magit-rev-verify (concat "refs/remotes/" name)))
+                ((not (magit-local-branch-p name)))
+                (rest (substring name (1+ slash)))
+                ((not (string-empty-p rest))))
+      (setq name rest))
+    (when-let* ((prefix (seq-find (lambda (p)
+                                    (and (string-prefix-p p name)
+                                         (> (length name) (length p))))
+                                  rs/worktree-strip-branch-prefixes)))
+      (setq name (substring name (length prefix))))
+    name))
+
 (defun rs/worktree--default-directory (branch)
   "Return the default path for a new worktree checking out BRANCH.
-Resolved under `rs/worktree-directory'.  When that is a shared pool
-outside the repo (an absolute path), the directory name is prefixed with
-the repo -- `hylo' + `rs/HYL-123' -> `hylo_rs-HYL-123' -- so worktrees
-from different repos stay distinguishable.  Nested under the repo the
-prefix is redundant and omitted.  Slashes in BRANCH are flattened so
-`feat/foo' does not create intermediate directories."
+Resolved under `rs/worktree-directory' and named after
+`rs/worktree--suggested-name'.  When that is a shared pool outside the
+repo (an absolute path), the directory name is prefixed with the repo --
+`hylo' + `rs/HYL-123' -> `hylo_HYL-123' -- so worktrees from different
+repos stay distinguishable.  Nested under the repo the prefix is
+redundant and omitted.  Remaining slashes are flattened so `feat/foo'
+does not create intermediate directories."
   (let* ((main (directory-file-name (or (rs/worktree--main-root default-directory)
                                         (user-error "Not inside a git repository"))))
          (repo (file-name-nondirectory main))
@@ -513,7 +542,8 @@ prefix is redundant and omitted.  Slashes in BRANCH are flattened so
          (base (if absolute
                    (expand-file-name rs/worktree-directory)
                  (expand-file-name rs/worktree-directory main)))
-         (leaf (replace-regexp-in-string "/" "-" branch)))
+         (leaf (replace-regexp-in-string
+                "/" "-" (rs/worktree--suggested-name branch))))
     (expand-file-name (if absolute (format "%s_%s" repo leaf) leaf) base)))
 
 (defun rs/worktree--add-and-open (name add-fn)
